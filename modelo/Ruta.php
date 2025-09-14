@@ -34,9 +34,11 @@ class Rutas
     function getNombre()
     {
         return $this->nombre;
+    
+
+        $this->distancia = $distancia;
     }
-    function setDistancia($distancia)
-    {
+    public function setDistancia(float $distancia): void {
         $this->distancia = $distancia;
     }
     function setNombre($nombre)

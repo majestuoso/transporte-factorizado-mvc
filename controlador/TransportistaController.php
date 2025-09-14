@@ -1,7 +1,5 @@
 <?php
-// Usamos __DIR__ para que las rutas sean absolutas y no dependan de la ubicación de ejecución.
-// Incluye las clases necesarias de las capas Modelo, Vista y la clase DB
-// La ruta ahora va desde el controlador, sube un nivel (..), y entra a la carpeta 'db'.
+
 require_once(__DIR__ . '/../db/DB.php');
 require_once(__DIR__ . '/../modelo/Transportista.php');
 require_once(__DIR__ . '/../vista/TransportistaView.php');
@@ -17,96 +15,111 @@ class TransportistaController
         $this->view = new TransportistaView();
     }
 
-    public function agregar()
+    public function agregar(): void
     {
         $data = $this->view->showAddForm();
 
         $transportista = new Transportista($data['nombre'], $data['apellido']);
         $transportista->setDisponible($data['disponible']);
         $transportista->setVehiculo($data['vehiculo']);
+        $transportista->setNota($data['nota']);
 
         $this->db->agregarTransportista($transportista);
 
-        $this->view->showMessage("\033[1;35mTransportista agregado correctamente.\n");
+        $this->view->showMessage("\n\033[1;32mTransportista agregado:\033[0m");
+        $this->view->imprimirEncabezado();
+        $this->view->imprimirFilaTransportista($transportista);
     }
 
-    public function listar()
+    public function listar(): void
     {
         $transportistas = $this->db->getTransportistas();
-        $this->view->displayList($transportistas);
-    }
 
-    public function modificar()
-    {
-        $transportistas = $this->db->getTransportistas();
-        if (count($transportistas) == 0) {
-            $this->view->showMessage("No hay transportistas registrados para modificar.");
+        if (count($transportistas) === 0) {
+            $this->view->showMessage("No hay transportistas registrados.");
             return;
         }
 
-        $this->view->displayList($transportistas);
-        $id = $this->view->getIdPrompt();
+        $this->view->showMessage("\n\033[1;36mListado de Transportistas:\033[0m");
+        $this->view->imprimirEncabezado();
+        foreach ($transportistas as $t) {
+            $this->view->imprimirFilaTransportista($t);
+        }
+    }
 
-        $transportistaEncontrado = null;
-        foreach ($transportistas as $transportista) {
-            if ($transportista->getId() == $id) {
-                $transportistaEncontrado = $transportista;
-                break;
+    public function modificar(): void
+    {
+        $transportistas = $this->db->getTransportistas();
+        if (count($transportistas) === 0) {
+            $this->view->showMessage("No hay transportistas registrados.");
+            return;
+        }
+
+        $this->listar();
+        $id = $this->view->getInput(str_pad("Ingrese el ID del chofer a modificar:", 40));
+
+        foreach ($transportistas as $t) {
+            if ($t->getId() == (int)$id) {
+                $nuevoNombre = $this->view->getInput(str_pad("Nuevo nombre (actual: {$t->getNombre()}):", 40));
+                $nuevoApellido = $this->view->getInput(str_pad("Nuevo apellido (actual: {$t->getApellido()}):", 40));
+                $nuevoVehiculo = $this->view->getInput(str_pad("Nuevo vehículo (actual: {$t->getVehiculo()}):", 40));
+                $nuevoDisponible = $this->view->getInput(str_pad("¿Disponible? (sí/no, actual: " . ($t->isDisponible() ? 'sí' : 'no') . "):", 40));
+                $nuevaNota = $this->view->getInput(str_pad("Nota (actual: " . ($t->getNota() ?? 'ninguna') . "):", 40));
+
+                if (!empty($nuevoNombre)) $t->setNombre($nuevoNombre);
+                if (!empty($nuevoApellido)) $t->setApellido($nuevoApellido);
+                if (!empty($nuevoVehiculo)) $t->setVehiculo($nuevoVehiculo);
+                if (strtolower($nuevoDisponible) === 'sí') $t->setDisponible(true);
+                elseif (strtolower($nuevoDisponible) === 'no') $t->setDisponible(false);
+                if (!empty($nuevaNota)) $t->setNota($nuevaNota);
+
+                $this->db->setTransportistas($transportistas);
+                $this->view->showMessage("\n\033[1;32mChofer modificado correctamente:\033[0m");
+                $this->view->imprimirEncabezado();
+                $this->view->imprimirFilaTransportista($t);
+                return;
             }
         }
 
-        if ($transportistaEncontrado === null) {
-            $this->view->showMessage("Transportista con ID '$id' no encontrado.");
-            return;
-        }
-
-        $data = $this->view->showModificationForm($transportistaEncontrado);
-
-        if (!empty($data['nombre'])) {
-            $transportistaEncontrado->setNombre($data['nombre']);
-        }
-        if (!empty($data['apellido'])) {
-            $transportistaEncontrado->setApellido($data['apellido']);
-        }
-        if (strtolower($data['cambiarDisponibilidad']) === 's') {
-            $this->view->showMessage("Ingrese la nueva disponibilidad (s/n): ");
-            $nuevaDisponibilidad = trim(fgets(STDIN));
-            $disponible = strtolower($nuevaDisponibilidad) === 's' ? true : false;
-            $transportistaEncontrado->setDisponible($disponible);
-        }
-        if (!empty($data['nuevoVehiculo'])) {
-            $transportistaEncontrado->setVehiculo($data['nuevoVehiculo']);
-        }
-
-        $this->db->setTransportistas($transportistas);
-        $this->view->showMessage("Transportista modificado correctamente.");
+        $this->view->showMessage("ID de chofer no encontrado.");
     }
 
-    public function eliminar()
+    public function eliminar(): void
     {
         $transportistas = $this->db->getTransportistas();
-        if (count($transportistas) == 0) {
+        if (count($transportistas) === 0) {
             $this->view->showMessage("No hay transportistas registrados para eliminar.");
             return;
         }
 
-        $this->view->displayList($transportistas);
-        $id = $this->view->getIdPrompt();
+        $this->listar();
+        $id = $this->view->getInput(str_pad("Ingrese el ID del chofer a eliminar:", 40));
 
-        $transportistaEncontrado = false;
         foreach ($transportistas as $indice => $t) {
-            if ($t->getId() == $id) {
-                $transportistaEncontrado = true;
+            if ($t->getId() == (int)$id) {
                 $this->db->borrarTransportistaPorIndice($indice);
-                break;
+                $this->view->showMessage("\033[1;31mTransportista eliminado correctamente.\033[0m");
+                return;
             }
         }
 
-        if ($transportistaEncontrado === false) {
-            $this->view->showMessage("Transportista no encontrado.");
+        $this->view->showMessage("Transportista no encontrado.");
+    }
+
+    public function listarDisponibles(): void
+    {
+        $transportistas = $this->db->getTransportistas();
+        $disponibles = array_filter($transportistas, fn($t) => $t->isDisponible());
+
+        if (count($disponibles) === 0) {
+            $this->view->showMessage("No hay transportistas disponibles.");
             return;
         }
 
-        $this->view->showMessage("Transportista eliminado correctamente.");
+        $this->view->showMessage("\n\033[1;36mTransportistas disponibles:\033[0m");
+        $this->view->imprimirEncabezado();
+        foreach ($disponibles as $t) {
+            $this->view->imprimirFilaTransportista($t);
+        }
     }
 }

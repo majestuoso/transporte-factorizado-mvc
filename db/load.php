@@ -6,11 +6,12 @@ require_once(__DIR__ . '/../modelo/Viaje.php');
 require_once(__DIR__ . '/DB.php');
 
 
-function agregaTransportista($db, $nombre, $apellido, $disponible, $vehiculo)
+function agregaTransportista($db, $nombre, $apellido, $disponible, $vehiculo, $nota = null)
 {
     $t1 = new Transportista($nombre, $apellido);
     $t1->setDisponible($disponible);
     $t1->setVehiculo($vehiculo);
+    $t1->setNota($nota);
     $db->agregaTransportista($t1);
 }
 
@@ -34,18 +35,17 @@ function load()
     $db = DB::getInstance();
 
    
-    agregaTransportista($db, 'Juan', 'Perez', true, 'mercedez 1114');
-    agregaTransportista($db, 'Pablo', 'Gomez', true, 'scania 113');
-    agregaTransportista($db, 'Pedro', 'Alvarez', true, 'fiat tector 1123');
+    agregaTransportista($db, 'Juan', 'Perez', true, 'mercedez 1114', 'Entrega de materiales peligrosos');
+    agregaTransportista($db, 'Pablo', 'Gomez', true, 'scania 113', 'Entrega urgente');
+    agregaTransportista($db, 'Pedro', 'Alvarez', true, 'fiat tector 1123', 'Cuidado con las curvas, chofer novato');
     //agregaTransportista($db, 'Luis', 'Zen', true, 'wolskwagen 310');
    
     agregaRuta($db, 'la numancia', '130km', '120$');
     agregaRuta($db, 'los teros', '30km', '134$');
-    agregaRuta($db, 'el bonete', '130km', '50$');
+    agregaRuta($db, 'el bonete', '120km', '50$');
 
     $transportista = $db->getTransportistaPorNombre('Juan');
     $ruta = $db->getRutaporId(1);
     agregaViaje($db, '130km', '120$', $transportista, $ruta);
 } 
 
-load();

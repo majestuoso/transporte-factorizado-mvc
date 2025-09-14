@@ -63,6 +63,18 @@ class Transportista
     {
         return $this->vehiculo;
     }
+    private ?string $nota = null; 
+
+public function setNota(?string $nota): void
+{
+    $this->nota = $nota;
+}
+
+public function getNota(): ?string
+{
+    return $this->nota;
+}
+
     public function setVehiculo($vehiculo)
     {
         $this->vehiculo = $vehiculo;

@@ -43,10 +43,27 @@ class Viaje
     {
         $this->tarifa = $tarifa;
     }
+    private string $estado = 'En curso'; // Estado inicial por defecto
+
+public function getEstado(): string
+{
+    return $this->estado;
+}
+
+public function setEstado(string $estado): void
+{
+    $this->estado = $estado;
+}
+
     public function getTransportista()
     {
         return $this->transportista;
     }
+    
+    public function setTransportista(Transportista $transportista): void {
+    $this->transportista = $transportista;
+}
+
     public function getRuta()
     {
         return $this->ruta;

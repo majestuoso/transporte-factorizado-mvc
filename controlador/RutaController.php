@@ -35,47 +35,34 @@ class RutaController
         $this->view->displayList($rutas);
     }
 
-    public function modificar()
-    {
-        $rutas = $this->db->getRutas();
-        if (count($rutas) == 0) {
-            $this->view->showMessage("No hay rutas registradas para modificar.");
-            return;
-        }
-
-        $this->view->displayList($rutas);
-        $id = $this->view->getIdPrompt();
-
-        $rutaEncontrada = null;
-        foreach ($rutas as $ruta) {
-            if ($ruta->getId() == $id) {
-                $rutaEncontrada = $ruta;
-                break;
-            }
-        }
-
-        if ($rutaEncontrada === null) {
-            $this->view->showMessage("Ruta no encontrada.");
-            return;
-        }
-
-        $data = $this->view->showModificationForm();
-
-        if (!empty($data['nuevoNombre'])) {
-            $rutaEncontrada->setNombre($data['nuevoNombre']);
-        }
-
-        if (!empty($data['nuevaDistancia'])) {
-            if (!is_numeric($data['nuevaDistancia']) || $data['nuevaDistancia'] <= 0) {
-                $this->view->showMessage("La distancia debe ser un número positivo.\n");
-                return;
-            }
-            $rutaEncontrada->setDistancia($data['nuevaDistancia']);
-        }
-
-        $this->db->setRutas($rutas);
-        $this->view->showMessage("Ruta modificada correctamente.");
+    public function modificar(): void
+{
+    $rutas = $this->db->getRutas();
+    if (count($rutas) === 0) {
+        $this->view->showMessage("No hay rutas registradas.");
+        return;
     }
+
+    $this->view->displayList($rutas);
+    $id = $this->view->getInput("Ingrese el ID de la ruta a modificar:");
+
+    foreach ($rutas as $r) {
+        if ($r->getId() == (int)$id) {
+            $nuevoNombre = $this->view->getInput("Nuevo nombre (actual: {$r->getNombre()}):");
+            $nuevaDistancia = $this->view->getInput("Nueva distancia (actual: {$r->getDistancia()} km):");
+
+            if (!empty($nuevoNombre)) $r->setNombre($nuevoNombre);
+            if (is_numeric($nuevaDistancia) && $nuevaDistancia > 0) $r->setDistancia((float)$nuevaDistancia);
+
+            $this->db->setRutas($rutas);
+            $this->view->showMessage("Ruta modificada correctamente.");
+            return;
+        }
+    }
+
+    $this->view->showMessage("ID de ruta no encontrado.");
+}
+
 
     public function eliminar()
     {

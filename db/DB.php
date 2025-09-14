@@ -157,4 +157,13 @@ class DB
             }
         }
     }
+    function actualizarTransportista(Transportista $transportista): void
+    {
+        foreach ($this->transportistas as $index => $t) {
+            if ($t->getId() === $transportista->getId()) {
+                $this->transportistas[$index] = $transportista;
+                return;
+            }
+        }
+    }
 }
