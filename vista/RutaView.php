@@ -1,10 +1,9 @@
 <?php
-
 require_once(__DIR__ . '/../librerias/Util.php');
 
 class RutaView
 {
-    public function MostrarLista($rutas)
+    public function displayList($rutas)
     {
         if (count($rutas) == 0) {
             mostrar("No hay rutas registradas.\n");
@@ -14,8 +13,7 @@ class RutaView
             }
         }
     }
-
-    public function MostrarAgregarRuta()
+    public function showAddForm()
     {
         mostrar("Ingrese el nombre de la ruta:");
         $nombre = trim(fgets(STDIN));
@@ -24,22 +22,18 @@ class RutaView
         
         return ['nombre' => $nombre, 'distancia' => $distancia];
     }
-
-    public function MostrarModificarRuta()
+    public function showModificationForm()
     {
         mostrar("Ingrese el nuevo nombre de la ruta:");
         $nuevoNombre = trim(fgets(STDIN));
         mostrar("Ingrese la nueva distancia de la ruta (en km):");
         $nuevaDistancia = trim(fgets(STDIN));
-
         return ['nuevoNombre' => $nuevoNombre, 'nuevaDistancia' => $nuevaDistancia];
     }
-
     public function showMessage($message)
     {
         mostrar($message);
     }
-
     public function getIdPrompt()
     {
         mostrar("Seleccione el ID de la ruta:");

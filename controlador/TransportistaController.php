@@ -1,4 +1,7 @@
 <?php
+// Usamos __DIR__ para que las rutas sean absolutas y no dependan de la ubicación de ejecución.
+// Incluye las clases necesarias de las capas Modelo, Vista y la clase DB
+// La ruta ahora va desde el controlador, sube un nivel (..), y entra a la carpeta 'db'.
 require_once(__DIR__ . '/../db/DB.php');
 require_once(__DIR__ . '/../modelo/Transportista.php');
 require_once(__DIR__ . '/../vista/TransportistaView.php');
@@ -16,10 +19,15 @@ class TransportistaController
 
     public function agregar()
     {
-        $data = $this->view-> showAddForm();
-        $transportista = new Transportista($data['nombre'], $data['vehiculo']);
-        $transportista->agregar();
-        $this->view->showMessage("Transportista agregado: " . $transportista->getNombre() . " con vehículo " . $transportista->getVehiculo() . ".\n");
+        $data = $this->view->showAddForm();
+
+        $transportista = new Transportista($data['nombre'], $data['apellido']);
+        $transportista->setDisponible($data['disponible']);
+        $transportista->setVehiculo($data['vehiculo']);
+
+        $this->db->agregarTransportista($transportista);
+
+        $this->view->showMessage("\033[1;35mTransportista agregado correctamente.\n");
     }
 
     public function listar()
@@ -48,14 +56,28 @@ class TransportistaController
         }
 
         if ($transportistaEncontrado === null) {
-            $this->view->showMessage("Transportista no encontrado.");
+            $this->view->showMessage("Transportista con ID '$id' no encontrado.");
             return;
         }
 
-        $data = $this->view->showModificationForm($transportista);
-        
-        
-        $transportistaEncontrado->modificar($data);
+        $data = $this->view->showModificationForm($transportistaEncontrado);
+
+        if (!empty($data['nombre'])) {
+            $transportistaEncontrado->setNombre($data['nombre']);
+        }
+        if (!empty($data['apellido'])) {
+            $transportistaEncontrado->setApellido($data['apellido']);
+        }
+        if (strtolower($data['cambiarDisponibilidad']) === 's') {
+            $this->view->showMessage("Ingrese la nueva disponibilidad (s/n): ");
+            $nuevaDisponibilidad = trim(fgets(STDIN));
+            $disponible = strtolower($nuevaDisponibilidad) === 's' ? true : false;
+            $transportistaEncontrado->setDisponible($disponible);
+        }
+        if (!empty($data['nuevoVehiculo'])) {
+            $transportistaEncontrado->setVehiculo($data['nuevoVehiculo']);
+        }
+
         $this->db->setTransportistas($transportistas);
         $this->view->showMessage("Transportista modificado correctamente.");
     }
@@ -71,16 +93,16 @@ class TransportistaController
         $this->view->displayList($transportistas);
         $id = $this->view->getIdPrompt();
 
-        $transportistaEncontrado = null;
+        $transportistaEncontrado = false;
         foreach ($transportistas as $indice => $t) {
             if ($t->getId() == $id) {
-                $transportistaEncontrado = $t;
-                $this->db->eliminarTransportista($indice);
+                $transportistaEncontrado = true;
+                $this->db->borrarTransportistaPorIndice($indice);
                 break;
             }
         }
 
-        if ($transportistaEncontrado === null) {
+        if ($transportistaEncontrado === false) {
             $this->view->showMessage("Transportista no encontrado.");
             return;
         }
@@ -88,4 +110,3 @@ class TransportistaController
         $this->view->showMessage("Transportista eliminado correctamente.");
     }
 }
-?>

@@ -1,7 +1,7 @@
 <?php
 
-
-
+// Incluye las clases necesarias de las capas Modelo, Vista y la clase DB
+// La ruta ahora va desde el controlador, sube un nivel (..), y entra a la carpeta 'db'.
 require_once(__DIR__ . '/../db/DB.php');
 require_once(__DIR__ . '/../modelo/Viaje.php');
 require_once(__DIR__ . '/../modelo/Ruta.php');
@@ -51,32 +51,5 @@ class ViajeController
     {
         $viajes = $this->db->getViajes();
         $this->view->MostrarViajes($viajes);
-    }
-    public function eliminar()
-    {
-        $viajes = $this->db->getViajes();
-        if (count($viajes) == 0) {
-            $this->view->showMessage("No hay viajes registrados para eliminar.\n");
-            return;
-        }
-
-        $this->view->MostrarViajes($viajes);
-        $id = $this->view->promptForId();
-
-        $viajeEncontrado = null;
-        foreach ($viajes as $viaje) {
-            if ($viaje->getId() == $id) {
-                $viajeEncontrado = $viaje;
-                break;
-            }
-        }
-
-        if ($viajeEncontrado === null) {
-            $this->view->showMessage("Viaje con ID '$id' no encontrado.\n");
-            return;
-        }
-
-        $this->db->eliminarViaje($id);
-        $this->view->showMessage("Viaje con ID '$id' eliminado correctamente.\n");
     }
 }

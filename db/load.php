@@ -34,14 +34,14 @@ function load()
     $db = DB::getInstance();
 
    
-   // agregaTransportista($db, 'Juan', 'Perez', true, 'mercedez 1114');
-    //agregaTransportista($db, 'Pablo', 'Gomez', true, 'scania 113');
-    //agregaTransportista($db, 'Pedro', 'Alvarez', true, 'fiat tector 1123');
+    agregaTransportista($db, 'Juan', 'Perez', true, 'mercedez 1114');
+    agregaTransportista($db, 'Pablo', 'Gomez', true, 'scania 113');
+    agregaTransportista($db, 'Pedro', 'Alvarez', true, 'fiat tector 1123');
     //agregaTransportista($db, 'Luis', 'Zen', true, 'wolskwagen 310');
    
-   // agregaRuta($db, 'la numancia', '130km', '120$');
-    //agregaRuta($db, 'los teros', '30km', '134$');
-    //agregaRuta($db, 'el bonete', '130km', '50$');
+    agregaRuta($db, 'la numancia', '130km', '120$');
+    agregaRuta($db, 'los teros', '30km', '134$');
+    agregaRuta($db, 'el bonete', '130km', '50$');
 
     $transportista = $db->getTransportistaPorNombre('Juan');
     $ruta = $db->getRutaporId(1);

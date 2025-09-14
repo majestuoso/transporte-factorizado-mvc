@@ -8,8 +8,10 @@ require_once('./librerias/Util.php');
 require_once('./db/DB.php');
 require_once('./db/load.php');
 require_once('./controlador/TransportistaController.php');
-require_once('./controlador/RutaController.php');
 require_once('./controlador/ViajeController.php');
+require_once('./controlador/RutaController.php');
+require_once('./librerias/Opcion.php');
+
 
 load();
 
@@ -33,7 +35,8 @@ $opciones_transportistas = [
     new Opcion('Agregar Transportista', [$transportistaController, 'agregar']),
     new Opcion('Modificar Transportista', [$transportistaController, 'modificar']),
     new Opcion('Eliminar Transportista', [$transportistaController, 'eliminar']),
-    new Opcion('Volver', function() { /* No hace nada, solo regresa al menú superior */ }),
+    new Opcion('Volver', function () { /* No hace nada, solo regresa al menú superior */
+    }),
 ];
 
 $opciones_rutas = [
@@ -41,14 +44,16 @@ $opciones_rutas = [
     new Opcion('Agregar Ruta', [$rutaController, 'agregar']),
     new Opcion('Modificar Ruta', [$rutaController, 'modificar']),
     new Opcion('Eliminar Ruta', [$rutaController, 'eliminar']),
-    new Opcion('Volver', function() { /* No hace nada, solo regresa al menú superior */ }),
+    new Opcion('Volver', function () { /* No hace nada, solo regresa al menú superior */
+    }),
 ];
 
 $opciones_viajes = [
     new Opcion('Listar Viajes', [$viajeController, 'listar']),
     new Opcion('Agregar Viaje', [$viajeController, 'agregar']),
     new Opcion('Eliminar Viaje', [$viajeController, 'eliminar']),
-    new Opcion('Volver', function() { /* No hace nada, solo regresa al menú superior */ }),
+    new Opcion('Volver', function () { /* No hace nada, solo regresa al menú superior */
+    }),
 ];
 
 
@@ -65,11 +70,11 @@ $menu = new Menu([
 $opcion = $menu->elegir();
 while ($opcion !== null && $opcion->getNombre() != 'Salir') {
     $funcion = $opcion->getFuncion();
-    
+
     if (is_callable($funcion)) {
         call_user_func($funcion);
     }
-    
+
     $opcion = $menu->elegir();
 }
 

@@ -1,4 +1,9 @@
 <?php
+
+
+
+// Incluye las clases necesarias de las capas Modelo, Vista y la clase DB
+// La ruta ahora va desde el controlador, sube un nivel (..), y entra a la carpeta 'db'.
 require_once(__DIR__ . '/../db/DB.php');
 require_once(__DIR__ . '/../modelo/Ruta.php');
 require_once(__DIR__ . '/../vista/RutaView.php');
@@ -16,16 +21,18 @@ class RutaController
 
     public function agregar()
     {
-        $data = $this->view->MostrarAgregarRuta();
-        $ruta = new Ruta($data['distancia'], $data['nombre']);
-        $ruta->agregar(); // Let the model handle its own persistence
-        $this->view->showMessage("Ruta agregada: " . $ruta->getNombre() . " con distancia " . $ruta->getDistancia() . " km.\n");
+        $data = $this->view->showAddForm();
+
+        $ruta = new Rutas($data['distancia'], $data['nombre']);
+        $this->db->agregarRuta($ruta);
+
+        $this->view->showMessage("Ruta agregada: " . $ruta);
     }
 
     public function listar()
     {
         $rutas = $this->db->getRutas();
-        $this->view->MostrarLista($rutas);
+        $this->view->displayList($rutas);
     }
 
     public function modificar()
@@ -36,7 +43,7 @@ class RutaController
             return;
         }
 
-        $this->view->MostrarLista($rutas);
+        $this->view->displayList($rutas);
         $id = $this->view->getIdPrompt();
 
         $rutaEncontrada = null;
@@ -52,10 +59,20 @@ class RutaController
             return;
         }
 
-        $data = $this->view->MostrarModificarRuta();
+        $data = $this->view->showModificationForm();
 
-        // Let the model handle its own modification logic
-        $rutaEncontrada->modificar($data);
+        if (!empty($data['nuevoNombre'])) {
+            $rutaEncontrada->setNombre($data['nuevoNombre']);
+        }
+
+        if (!empty($data['nuevaDistancia'])) {
+            if (!is_numeric($data['nuevaDistancia']) || $data['nuevaDistancia'] <= 0) {
+                $this->view->showMessage("La distancia debe ser un número positivo.\n");
+                return;
+            }
+            $rutaEncontrada->setDistancia($data['nuevaDistancia']);
+        }
+
         $this->db->setRutas($rutas);
         $this->view->showMessage("Ruta modificada correctamente.");
     }
@@ -68,19 +85,19 @@ class RutaController
             return;
         }
 
-        $this->view->mostrarLista($rutas);
+        $this->view->displayList($rutas);
         $id = $this->view->getIdPrompt();
 
-        $rutaEncontrada = null;
+        $rutaEncontrada = false;
         foreach ($rutas as $indice => $t) {
             if ($t->getId() == $id) {
-                $rutaEncontrada = $t;
+                $rutaEncontrada = true;
                 $this->db->eliminarRuta($indice);
                 break;
             }
         }
 
-        if ($rutaEncontrada === null) {
+        if ($rutaEncontrada === false) {
             $this->view->showMessage("Ruta no encontrada.");
             return;
         }
@@ -88,4 +105,3 @@ class RutaController
         $this->view->showMessage("Ruta eliminada correctamente.");
     }
 }
-?>

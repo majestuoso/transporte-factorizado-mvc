@@ -1,6 +1,5 @@
 <?php
-
-require_once('./librerias/Util.php');
+require_once(__DIR__ . '/../librerias/Util.php');
 
 class TransportistaView
 {
@@ -26,7 +25,6 @@ class TransportistaView
         mostrar("\033[1;33m ¿Está disponible el transportista? (s/n): ");
         $disponibleInput = trim(fgets(STDIN));
         $disponible = strtolower($disponibleInput) === 's' ? true : false;
-
         return ['nombre' => $nombre, 'apellido' => $apellido, 'vehiculo' => $vehiculo, 'disponible' => $disponible];
     }
 
@@ -42,15 +40,12 @@ class TransportistaView
         mostrar("Desea cambiar el tipo de vehículo? (s/n, actual: '" . $transportista->getVehiculo() . "'): ");
         mostrar("Ingrese el nuevo vehiculo del transportista (dejar en blanco para mantener  ");
         $nuevoVehiculo = trim(fgets(STDIN));
-
         return ['nombre' => $nuevoNombre, 'apellido' => $nuevoApellido, 'cambiarDisponibilidad' => $cambiarDisponibilidad, 'nuevoVehiculo' => $nuevoVehiculo];
     }
-
     public function showMessage($message)
     {
         mostrar($message);
     }
-
     public function getIdPrompt()
     {
         mostrar("Seleccione el ID del transportista:");
