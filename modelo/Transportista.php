@@ -63,17 +63,22 @@ class Transportista
     {
         return $this->vehiculo;
     }
-    private ?string $nota = null; 
+    private ?string $nota = null;
 
-public function setNota(?string $nota): void
-{
-    $this->nota = $nota;
-}
+    public function setNota(?string $nota): void
+    {
+        $this->nota = $nota;
+    }
 
-public function getNota(): ?string
-{
-    return $this->nota;
-}
+    public function getNota(): ?string
+    {
+        return $this->nota;
+    }
+    public function setTurno($turno)
+    {
+        $this->turno = $turno;
+        return $this;
+    }
 
     public function setVehiculo($vehiculo)
     {
@@ -83,9 +88,9 @@ public function getNota(): ?string
     public function __toString()
     {
         return
-        "ID: " . $this->getId() . "
-        | Nombre: " . $this->getNombre() . "  |  Apellido: " . $this->getApellido() ."
-        | Disponible: " . ($this->isDisponible() ? "Sí" : "No") . "  | Turno: " . $this->turno ."
-        | Vehiculo: " . $this->getVehiculo() ."\n";
+            "ID: " . $this->getId() . "
+        | Nombre: " . $this->getNombre() . "  |  Apellido: " . $this->getApellido() . "
+        | Disponible: " . ($this->isDisponible() ? "Sí" : "No") . "  | Turno: " . $this->turno . "
+        | Vehiculo: " . $this->getVehiculo() . "\n";
     }
 }

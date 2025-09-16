@@ -1,169 +1,187 @@
 <?php
+
 class DB
 {
+    private static ?DB $instance = null;
 
-    static $instance = null;
+    private array $transportistas = [];
+    private array $rutas = [];
+    private array $viajes = [];
 
-    private $transportistas = [];
-    private $rutas = [];
-    private $viajes = [];
-
-
-    static function getInstance()
+    public static function getInstance(): DB
     {
-        if (self::$instance == null) {
+        if (self::$instance === null) {
             self::$instance = new DB();
         }
         return self::$instance;
     }
 
-    function __construct()
-    {
-        $this->transportistas = [];
-        $this->rutas = [];
-        $this->viajes = [];
-    }
-    function transportistasDisponibles()
-    {
-        $disponibles = [];
-        foreach ($this->transportistas as $transportista) {
-            if ($transportista->isDisponible() == true)
-                array_push($disponibles, $transportista);
-        }
-        return $disponibles;
-    }
-    function TurnoMenor()
-    {
-        $turnomenor = null;
+    private function __construct() {}
 
-        foreach ($this->transportistasDisponibles() as $transportista) {
-            if ($turnomenor === null || (isset($turnomenor->turno) && $transportista->turno < $turnomenor->turno)) {
-                $turnomenor = $transportista;
-            }
-        }
-        return $turnomenor;
-    }
-    function borrarTransportistaPorIndice($indice)
+    // 🔹 Transportistas
+    public function agregarTransportista(Transportista $t): void
     {
-
-        unset($this->transportistas[$indice]);
+        $this->transportistas[] = $t;
     }
-    function getTransportistas()
+
+    public function getTransportistas(): array
     {
         return $this->transportistas;
     }
-    function getTransportistaPorId($id)
+
+    public function getTransportistaPorId(int $id): ?Transportista
     {
-        foreach ($this->transportistas as $transportista) {
-            if ($transportista->getId() == $id) {
-                return $transportista;
-            }
+        foreach ($this->transportistas as $t) {
+            if ($t->getId() === $id) return $t;
         }
         return null;
     }
-    function setTransportistas($transportistas)
-    {
-        $this->transportistas = $transportistas;
-    }
-    function agregaTransportista($transportista)
-    {
-        array_push($this->transportistas, $transportista);
-    }
-    function agregarTransportista($transportista)
-    {
-        array_push($this->transportistas, $transportista);
-    }
 
-    function agregaRuta($ruta)
+    public function getTransportistaPorNombre(string $nombre): ?Transportista
     {
-        array_push($this->rutas, $ruta);
-    }
-    function agregarRuta($ruta)
-    {
-        array_push($this->rutas, $ruta);
-    }
-    function getTurnotransportista($id)
-    {
-        foreach ($this->transportistas as $transportista) {
-            if ($transportista->getId() == $id) {
-                return $transportista->getTurno();
-            }
+        foreach ($this->transportistas as $t) {
+            if ($t->getNombre() === $nombre) return $t;
         }
         return null;
     }
-    function getRutaporId($id)
+
+    public function transportistasDisponibles(): array
     {
-        foreach ($this->rutas as $ruta) {
-            if ($ruta->getId() == $id) {
-                return $ruta;
-            }
-        }
-        return null;
-    }
-    function setRutas($rutas)
-    {
-        $this->rutas = $rutas;
+        return array_filter($this->transportistas, fn($t) => $t->isDisponible());
     }
 
-    function getRutas()
+    public function turnoMenor(): ?Transportista
     {
-        return $this->rutas;
-    }
-    function getRutaporNombre($nombre)
-    {
-        foreach ($this->rutas as $ruta) {
-            if ($ruta->getNombre() == $nombre) {
-                return $ruta;
-            }
-        }
-    }
-    function eliminarRuta($indice)
-    {
-        unset($this->rutas[$indice]);
-    }
-    function eliminarViaje($indice)
-    {
-        unset($this->viajes[$indice]);
-    }
-    
-    function setViajes($viaje)
-    {
-        $this->viajes = $viaje;
+        $disponibles = $this->transportistasDisponibles();
+        usort($disponibles, fn($a, $b) => $a->getTurno() <=> $b->getTurno());
+        return $disponibles[0] ?? null;
     }
 
-    function agregarViaje($viaje)
+    public function borrarTransportistaPorIndice(int $i): void
     {
-        array_push($this->viajes, $viaje);
+        unset($this->transportistas[$i]);
+        $this->transportistas = array_values($this->transportistas);
     }
 
-    function getViajePorId($id)
+    public function actualizarTransportista(Transportista $t): void
     {
-        foreach ($this->viajes as $viaje) {
-            if ($viaje->getId() == $id) {
-                return $viaje;
-            }
-        }
-        return null;
-    }
-    function getViajes()
-    {
-        return $this->viajes;
-    }
-    function getTransportistaPorNombre($nombre)
-    {
-        foreach ($this->transportistas as $transportista) {
-            if ($transportista->getNombre() == $nombre) {
-                return $transportista;
-            }
-        }
-    }
-    function actualizarTransportista(Transportista $transportista): void
-    {
-        foreach ($this->transportistas as $index => $t) {
-            if ($t->getId() === $transportista->getId()) {
-                $this->transportistas[$index] = $transportista;
+        foreach ($this->transportistas as $i => $actual) {
+            if ($actual->getId() === $t->getId()) {
+                $this->transportistas[$i] = $t;
                 return;
             }
         }
+    }
+
+    // 🔹 Rutas
+    public function agregarRuta(Ruta $r): void
+    {
+        $this->rutas[] = $r;
+    }
+
+    public function getRutas(): array
+    {
+        return $this->rutas;
+    }
+
+    public function getRutaPorId(int $id): ?Ruta
+    {
+        foreach ($this->rutas as $r) {
+            if ($r->getId() === $id) return $r;
+        }
+        return null;
+    }
+
+    public function getRutaPorNombre(string $nombre): ?Ruta
+    {
+        foreach ($this->rutas as $r) {
+            if ($r->getNombre() === $nombre) return $r;
+        }
+        return null;
+    }
+
+    public function eliminarRuta(int $i): void
+    {
+        unset($this->rutas[$i]);
+        $this->rutas = array_values($this->rutas);
+    }
+
+    // 🔹 Viajes
+    public function agregarViaje(Viaje $v): void
+    {
+        $this->viajes[] = $v;
+    }
+
+    public function getViajes(): array
+    {
+        return $this->viajes;
+    }
+
+    public function getViajePorId(int $id): ?Viaje
+    {
+        foreach ($this->viajes as $v) {
+            if ($v->getId() === $id) return $v;
+        }
+        return null;
+    }
+
+    public function actualizarTarifaViaje(int $id, float $tarifa): bool
+    {
+        foreach ($this->viajes as $i => $v) {
+            if ($v->getId() === $id) {
+                $v->setTarifa($tarifa);
+                $this->viajes[$i] = $v;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public function actualizarTransportistaEnViaje(int $id, int $transportistaId): bool
+    {
+        foreach ($this->viajes as $i => $v) {
+            if ($v->getId() === $id) {
+                $v->setTransportistaId($transportistaId);
+                $this->viajes[$i] = $v;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public function actualizarRutaEnViaje(int $id, int $rutaId): bool
+    {
+        foreach ($this->viajes as $i => $v) {
+            if ($v->getId() === $id) {
+                $v->setRutaId($rutaId);
+                $this->viajes[$i] = $v;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public function actualizarEstadoViaje(int $id, string $estado): bool
+    {
+        foreach ($this->viajes as $i => $v) {
+            if ($v->getId() === $id) {
+                $v->setEstado($estado);
+                $this->viajes[$i] = $v;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public function eliminarViaje(int $id): bool
+    {
+        foreach ($this->viajes as $i => $v) {
+            if ($v->getId() === $id) {
+                unset($this->viajes[$i]);
+                $this->viajes = array_values($this->viajes);
+                return true;
+            }
+        }
+        return false;
     }
 }

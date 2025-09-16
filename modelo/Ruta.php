@@ -1,55 +1,71 @@
+
+
 <?php
 
 require_once(__DIR__ . '/../db/DB.php');
 
-class Rutas
+class Ruta
 {
-    private static $ultimoId = 0;
-    private $id;
-    private $distancia;
-    private $nombre;
-    private $tarifa;
+    private static int $ultimoId = 0;
 
-    function __construct($distancia, $nombre)
+    private int $id;
+    private string $nombre;
+    private float $distancia;
+    private ?string $nota = null;
+
+    public function __construct(float $distancia, string $nombre)
     {
-        rutas::$ultimoId++;
-        $this->id = rutas::$ultimoId;
+        self::$ultimoId++;
+        $this->id = self::$ultimoId;
         $this->nombre = $nombre;
         $this->distancia = $distancia;
-        $this->tarifa = null;
     }
 
-    function getDistancia()
-    {
-        return $this->distancia;
-    }
-    function setTarifa($tarifa)
-    {
-        $this->tarifa = $tarifa;
-    }
-    function getId()
+    // Getters
+    public function getId(): int
     {
         return $this->id;
     }
-    function getNombre()
+
+    public function getNombre(): string
     {
         return $this->nombre;
-    
+    }
 
-        $this->distancia = $distancia;
+    public function getDistancia(): float
+    {
+        return $this->distancia;
     }
-    public function setDistancia(float $distancia): void {
-        $this->distancia = $distancia;
+
+    public function getNota(): ?string
+    {
+        return $this->nota;
     }
-    function setNombre($nombre)
+
+    // Setters
+    public function setNombre(string $nombre): void
     {
         $this->nombre = $nombre;
     }
-    function __toString()
+
+    public function setDistancia(float $distancia): void
     {
-        return 
-        "ID: " . $this->getId() . " 
-        | Nombre: " . $this->getNombre() . " 
-        | Distancia: " . $this->getDistancia() . " \n";
+        $this->distancia = $distancia;
+    }
+
+    public function setNota(?string $nota): void
+    {
+        $this->nota = $nota;
+    }
+
+    // Representación en texto
+    public function __toString(): string
+    {
+        return
+            "ID: {$this->id}
+        | Nombre: {$this->nombre}
+        | Distancia: {$this->distancia} km
+        | Nota: " . ($this->nota ? $this->nota : "Sin nota") . "\n";
     }
 }
+

@@ -1,80 +1,108 @@
 <?php
 
 
-require_once(__DIR__ . '/Ruta.php');
-require_once(__DIR__ . '/Transportista.php');
+require_once(__DIR__ . '/../db/DB.php');
 
 class Viaje
 {
-    private static $ultimoId = 0;
-    private $id;
-    private $distancia;
-    private $tarifa;
-    private $transportista;
-    private $ruta;
+    private static int $ultimoId = 0;
 
-    public function __construct(Rutas $ruta, Transportista $transportista)
+    private int $id;
+    private int $rutaId;
+    private int $transportistaId;
+    private string $estado;
+    private float $tarifa = 0.0;
+    private ?string $nota = null;
+
+    public function __construct(int $rutaId, int $transportistaId, string $estado)
     {
-        Viaje::$ultimoId++;
-        $this->id = Viaje::$ultimoId;
-        $this->ruta = $ruta;
-        $this->transportista = $transportista;
-        $this->distancia = $ruta->getDistancia();
-        $this->tarifa = null;
+        self::$ultimoId++;
+        $this->id = self::$ultimoId;
+        $this->rutaId = $rutaId;
+        $this->transportistaId = $transportistaId;
+        $this->estado = $estado;
     }
 
-    public function getId()
+    // Getters
+    public function getId(): int
     {
         return $this->id;
     }
-    public function getDistancia()
+
+    public function getRutaId(): int
     {
-        return $this->distancia;
+        return $this->rutaId;
     }
-    public function setDistancia($distancia)
+
+    public function getTransportistaId(): int
     {
-        $this->distancia = $distancia;
+        return $this->transportistaId;
     }
-    public function getTarifa()
+
+    public function getEstado(): string
+    {
+        return $this->estado;
+    }
+
+    public function getTarifa(): float
     {
         return $this->tarifa;
     }
-    public function setTarifa($tarifa)
+
+    public function getNota(): ?string
+    {
+        return $this->nota;
+    }
+
+    // Setters
+    public function setRutaId(int $rutaId): void
+    {
+        $this->rutaId = $rutaId;
+    }
+
+    public function setTransportistaId(int $transportistaId): void
+    {
+        $this->transportistaId = $transportistaId;
+    }
+
+    public function setEstado(string $estado): void
+    {
+        $this->estado = $estado;
+    }
+
+    public function setTarifa(float $tarifa): void
     {
         $this->tarifa = $tarifa;
     }
-    private string $estado = 'En curso'; // Estado inicial por defecto
 
-public function getEstado(): string
+    public function setNota(?string $nota): void
+    {
+        $this->nota = $nota;
+    }
+
+   
+  public function __toString(): string
 {
-    return $this->estado;
+    $db = DB::getInstance();
+
+    $transportista = $db->getTransportistaPorId($this->transportistaId);
+    $ruta = $db->getRutaPorId($this->rutaId);
+
+    $datosTransportista = $transportista
+        ? "ID: {$transportista->getId()} | Nombre: {$transportista->getNombre()} {$transportista->getApellido()} | Vehículo: {$transportista->getVehiculo()} | Disponible: " . ($transportista->isDisponible() ? "Sí" : "No")
+        : "Transportista no encontrado";
+
+    $datosRuta = $ruta
+        ? "ID: {$ruta->getId()} | Nombre: {$ruta->getNombre()} | Distancia: {$ruta->getDistancia()} km"
+        : "Ruta no encontrada";
+
+    return "\n🧾 Viaje ID: {$this->id}\n"
+        . "📍 Ruta → {$datosRuta}\n"
+        . "🧍 Transportista → {$datosTransportista}\n"
+        . "💰 Tarifa: \$" . number_format($this->tarifa, 2) . "\n"
+        . "🗒️ Nota: " . ($this->nota ? $this->nota : "Sin nota") . "\n"
+        . "📌 Estado: {$this->estado}\n";
 }
 
-public function setEstado(string $estado): void
-{
-    $this->estado = $estado;
-}
 
-    public function getTransportista()
-    {
-        return $this->transportista;
-    }
-    
-    public function setTransportista(Transportista $transportista): void {
-    $this->transportista = $transportista;
-}
-
-    public function getRuta()
-    {
-        return $this->ruta;
-    }
-    public function __toString()
-    {
-        return
-        "ID Viaje: " . $this->getId() . " 
-        | Ruta: " . $this->getRuta()->getNombre() . " 
-        | Transportista: " . $this->getTransportista()->getNombre() . " 
-        | Distancia: " . $this->getDistancia() . " 
-        | Tarifa: " . $this->getTarifa() . "\n";
-    }
 }

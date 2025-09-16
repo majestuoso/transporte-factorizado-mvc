@@ -1,57 +1,34 @@
 <?php
-require_once(__DIR__ . '/../librerias/Util.php');
 
-class RutaView
+
+
+class RutaView extends View
+
+{ 
+
+public function solicitarDatos(): array
 {
-   public function displayList(array $rutas)
-{
-    if (count($rutas) === 0) {
-        $this->showMessage("No hay rutas registradas.");
-        return;
-    }
-
-    printf("\n\033[1;36m%-4s | %-25s | %-10s\033[0m\n", "ID", "Nombre", "Distancia (km)");
-    printf("%'-45s\n", "");
-
-    foreach ($rutas as $ruta) {
-        printf(
-            "%-4d | %-25s | %-10.2f\n",
-            $ruta->getId(),
-            $ruta->getNombre(),
-            $ruta->getDistancia()
-        );
-    }
+    $nombre = $this->getInput("Nombre:");
+    $apellido = $this->getInput("distancia:");
+    $vehiculo = $this->getInput("Vehículo:");
+    $nota = $this->getInput("Nota (opcional):");
+    return compact('nombre', 'distancia', 'vehiculo', 'nota');
 }
-public function getInput(string $mensaje): string
-    {
-        echo "\n\033[1;36m$mensaje\033[0m ";
-        return trim(fgets(STDIN));
-    }
 
-    public function showAddForm()
-    {
-        mostrar("Ingrese el nombre de la ruta:");
-        $nombre = trim(fgets(STDIN));
-        mostrar("Ingrese la distancia de la ruta (en km):");
-        $distancia = trim(fgets(STDIN));
-        
-        return ['nombre' => $nombre, 'distancia' => $distancia];
+
+public function mostrarResumen(Ruta $t): void
+{
+    echo "\n\033[1;32mRuta registrada exitosamente:\033[0m\n";
+    echo $t;    
+}   
+
+
+public function mostrarRutas(array $rutas): void
+{
+    echo "\n\033[1;33m--- Lista de Transportistas ---\033[0m\n";
+    foreach ($rutas as $t) {
+        echo $t;
     }
-    public function showModificationForm()
-    {
-        mostrar("Ingrese el nuevo nombre de la ruta:");
-        $nuevoNombre = trim(fgets(STDIN));
-        mostrar("Ingrese la nueva distancia de la ruta (en km):");
-        $nuevaDistancia = trim(fgets(STDIN));
-        return ['nuevoNombre' => $nuevoNombre, 'nuevaDistancia' => $nuevaDistancia];
-    }
-    public function showMessage($message)
-    {
-        mostrar($message);
-    }
-    public function getIdPrompt()
-    {
-        mostrar("Seleccione el ID de la ruta:");
-        return trim(fgets(STDIN));
-    }
+    echo "\n";          
+}   
 }

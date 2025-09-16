@@ -1,51 +1,62 @@
 <?php
 
-require_once(__DIR__ . '/../modelo/Transportista.php');
-require_once(__DIR__ . '/../modelo/Ruta.php');
-require_once(__DIR__ . '/../modelo/Viaje.php');
-require_once(__DIR__ . '/DB.php');
-
-
-function agregaTransportista($db, $nombre, $apellido, $disponible, $vehiculo, $nota = null)
-{
-    $t1 = new Transportista($nombre, $apellido);
-    $t1->setDisponible($disponible);
-    $t1->setVehiculo($vehiculo);
-    $t1->setNota($nota);
-    $db->agregaTransportista($t1);
-}
-
-function agregaRuta($db, $nombre, $distancia, $tarifa)
-{
-    $r1 = new Rutas($distancia,$nombre);
-    $r1->setTarifa($tarifa);
-    $db->agregaRuta($r1);
-}
-
-function agregaViaje($db,$distancia, $tarifa, $transportista, $ruta)
-{
-    $v1 = new Viaje($ruta,$transportista);
-    $v1->setTarifa($tarifa);
-    $v1->setDistancia($distancia);
-    $db->agregarViaje($v1);
-}
-
 function load()
 {
     $db = DB::getInstance();
+    $transportistaController = new TransportistaController();
+    $rutaController = new RutaController();
+    $viajeController = new ViajeController();
 
-   
-    agregaTransportista($db, 'Juan', 'Perez', true, 'mercedez 1114', 'Entrega de materiales peligrosos');
-    agregaTransportista($db, 'Pablo', 'Gomez', true, 'scania 113', 'Entrega urgente');
-    agregaTransportista($db, 'Pedro', 'Alvarez', true, 'fiat tector 1123', 'Cuidado con las curvas, chofer novato');
-    //agregaTransportista($db, 'Luis', 'Zen', true, 'wolskwagen 310');
-   
-    agregaRuta($db, 'la numancia', '130km', '120$');
-    agregaRuta($db, 'los teros', '30km', '134$');
-    agregaRuta($db, 'el bonete', '120km', '50$');
+    // Transportistas
+    $transportistaController->agregarDesdeDatos([
+        'nombre' => 'Juan',
+        'apellido' => 'Perez',
+        'disponible' => true,
+        'vehiculo' => 'mercedez 1114',
+        'nota' => 'Entrega de materiales peligrosos'
+    ]);
 
+    $transportistaController->agregarDesdeDatos([
+        'nombre' => 'Pablo',
+        'apellido' => 'Gomez',
+        'disponible' => true,
+        'vehiculo' => 'scania 113',
+        'nota' => 'Entrega urgente'
+    ]);
+
+    $transportistaController->agregarDesdeDatos([
+        'nombre' => 'Pedro',
+        'apellido' => 'Alvarez',
+        'disponible' => true,
+        'vehiculo' => 'fiat tector 1123',
+        'nota' => 'Cuidado con las curvas, chofer novato'
+    ]);
+
+    // Rutas
+    $rutaController->agregarDesdeDatos([
+        'nombre' => 'la numancia',
+        'distancia' => '130'
+    ]);
+
+    $rutaController->agregarDesdeDatos([
+        'nombre' => 'los teros',
+        'distancia' => '30'
+    ]);
+
+    $rutaController->agregarDesdeDatos([
+        'nombre' => 'el bonete',
+        'distancia' => '120'
+    ]);
+
+    // Viaje
     $transportista = $db->getTransportistaPorNombre('Juan');
-    $ruta = $db->getRutaporId(1);
-    agregaViaje($db, '130km', '120$', $transportista, $ruta);
-} 
+    $ruta = $db->getRutaPorId(1);
 
+    if ($transportista && $ruta) {
+        $viajeController->agregarDesdeDatos([
+            'transportistaId' => $transportista->getId(),
+            'rutaId' => $ruta->getId(),
+            'estado' => 'pendiente'
+        ]);
+    }
+}
