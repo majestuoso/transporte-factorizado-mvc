@@ -1,13 +1,7 @@
 <?php
 
-class TransportistaModel
+class TransportistaModel extends Model
 {
-    private DB $db;
-
-    public function __construct()
-    {
-        $this->db = DB::getInstance();
-    }
 
     public function obtenerProximoTurno(): int
     {
@@ -36,5 +30,5 @@ class TransportistaModel
     public function listar(): array
     {
         return $this->db->getTransportistas();
-    }   
+    }
 }

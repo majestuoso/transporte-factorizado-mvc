@@ -1,17 +1,10 @@
 <?php
 
-class ViajeModel
+
+class ViajeModel extends Model
 {
-    private DB $db;
 
-    public function __construct(DB $db)
-    {
-        $this->db = $db;
-    }
 
-    /**
-     * Crea un viaje validado y lo guarda en la base de datos.
-     */
     public function crearYGuardar(array $datos): ?Viaje
     {
         $rutaId = isset($datos['rutaId']) ? (int)$datos['rutaId'] : null;
@@ -43,17 +36,14 @@ class ViajeModel
         return $this->db->actualizarTarifaViaje($id, $nuevaTarifa);
     }
 
-    /**
-     * Modifica el transportista asignado a un viaje.
-     */
+
+
     public function modificarTransportista(int $id, int $nuevoTransportistaId): bool
     {
         return $this->db->actualizarTransportistaEnViaje($id, $nuevoTransportistaId);
     }
 
-    /**
-     * Modifica la ruta asignada a un viaje.
-     */
+
     public function modificarRuta(int $id, int $nuevaRutaId): bool
     {
         return $this->db->actualizarRutaEnViaje($id, $nuevaRutaId);

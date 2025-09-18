@@ -1,13 +1,7 @@
 <?php
 
-class RutaModel
+class RutaModel extends Model
 {
-    private DB $db;
-
-    public function __construct()
-    {
-        $this->db = DB::getInstance();
-    }
 
     /**
      * Crea una ruta validada y la guarda en la base de datos.

@@ -3,12 +3,12 @@
 function load()
 {
     $db = DB::getInstance();
-    $transportistaController = new TransportistaController();
+    $transportistaController = new TransportistaModel();
     $rutaController = new RutaController();
     $viajeController = new ViajeController();
 
     // Transportistas
-    $transportistaController->agregarDesdeDatos([
+    $transportistaController->crearYGuardar([
         'nombre' => 'Juan',
         'apellido' => 'Perez',
         'disponible' => true,
@@ -16,7 +16,7 @@ function load()
         'nota' => 'Entrega de materiales peligrosos'
     ]);
 
-    $transportistaController->agregarDesdeDatos([
+    $transportistaController->crearYGuardar([
         'nombre' => 'Pablo',
         'apellido' => 'Gomez',
         'disponible' => true,
@@ -24,7 +24,7 @@ function load()
         'nota' => 'Entrega urgente'
     ]);
 
-    $transportistaController->agregarDesdeDatos([
+    $transportistaController->crearYGuardar([
         'nombre' => 'Pedro',
         'apellido' => 'Alvarez',
         'disponible' => true,

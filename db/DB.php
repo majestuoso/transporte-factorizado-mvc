@@ -106,7 +106,7 @@ class DB
         $this->rutas = array_values($this->rutas);
     }
 
-    // 🔹 Viajes
+
     public function agregarViaje(Viaje $v): void
     {
         $this->viajes[] = $v;

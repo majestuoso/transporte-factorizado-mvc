@@ -2,7 +2,6 @@
 
 declare(strict_types=1);
 
-require_once(__DIR__ . '/../db/DB.php');
 require_once(__DIR__ . '/../modelo/ViajeModel.php');
 require_once(__DIR__ . '/../vista/ViajeView.php');
 require_once(__DIR__ . '/../modelo/Viaje.php');
@@ -14,7 +13,7 @@ class ViajeController
 
     public function __construct()
     {
-        $this->model = new ViajeModel(DB::getInstance());
+        $this->model = new ViajeModel();
         $this->view = new ViajeView();
     }
 
@@ -86,15 +85,14 @@ class ViajeController
         $this->view->showMessage($resultado ? "Viaje eliminado correctamente." : "No se pudo eliminar el viaje.");
     }
     public function agregarDesdeDatos(array $datos): void
-{
-    $transportistaId = (int)($datos['transportistaId'] ?? 0);
-    $rutaId = (int)($datos['rutaId'] ?? 0);
-    $estado = trim($datos['estado'] ?? '');
+    {
+        $transportistaId = (int)($datos['transportistaId'] ?? 0);
+        $rutaId = (int)($datos['rutaId'] ?? 0);
+        $estado = trim($datos['estado'] ?? '');
 
-    if ($transportistaId <= 0 || $rutaId <= 0 || $estado === '') return;
+        if ($transportistaId <= 0 || $rutaId <= 0 || $estado === '') return;
 
-    $viaje = new Viaje($rutaId, $transportistaId, $estado);
-    DB::getInstance()->agregarViaje($viaje);
-}
-
+        $viaje = new Viaje($rutaId, $transportistaId, $estado);
+        DB::getInstance()->agregarViaje($viaje);
+    }
 }
