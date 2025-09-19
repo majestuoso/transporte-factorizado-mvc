@@ -59,6 +59,7 @@ class Viaje
     {
         $this->rutaId = $rutaId;
     }
+    
 
     public function setTransportistaId(int $transportistaId): void
     {

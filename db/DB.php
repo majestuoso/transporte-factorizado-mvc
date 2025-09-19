@@ -28,6 +28,7 @@ class DB
     {
         return $this->transportistas;
     }
+    
 
     public function getTransportistaPorId(int $id): ?Transportista
     {

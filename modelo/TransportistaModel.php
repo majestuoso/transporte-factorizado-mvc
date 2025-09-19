@@ -1,5 +1,6 @@
 <?php
 
+require_once(__DIR__ . '/../modelo/Model.php');
 class TransportistaModel extends Model
 {
 

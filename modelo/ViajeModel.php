@@ -6,31 +6,28 @@ class ViajeModel extends Model
 
 
     public function crearYGuardar(array $datos): ?Viaje
-    {
-        $rutaId = isset($datos['rutaId']) ? (int)$datos['rutaId'] : null;
-        $transportistaId = isset($datos['transportistaId']) ? (int)$datos['transportistaId'] : null;
-        $estado = isset($datos['estado']) ? trim($datos['estado']) : null;
+{
+    $rutaId = isset($datos['rutaId']) ? (int)$datos['rutaId'] : null;
+    $transportistaId = isset($datos['transportistaId']) ? (int)$datos['transportistaId'] : null;
+    $estado = isset($datos['estado']) ? trim($datos['estado']) : null;
+    $tarifa = isset($datos['tarifa']) ? (float)$datos['tarifa'] : null;
 
-        if (!$rutaId || !$transportistaId || $estado === '') {
-            return null;
-        }
-
-        $viaje = new Viaje($rutaId, $transportistaId, $estado);
-        $this->db->agregarViaje($viaje);
-        return $viaje;
+    if (!$rutaId || !$transportistaId || $estado === '' || $tarifa === null) {
+        return null;
     }
 
-    /**
-     * Devuelve todos los viajes registrados.
-     */
+    $viaje = new Viaje($rutaId, $transportistaId, $estado, $tarifa);
+    $this->db->agregarViaje($viaje);
+    return $viaje;
+}
+
+
     public function listar(): array
     {
         return $this->db->getViajes();
     }
 
-    /**
-     * Modifica la tarifa de un viaje.
-     */
+     
     public function modificarTarifa(int $id, float $nuevaTarifa): bool
     {
         return $this->db->actualizarTarifaViaje($id, $nuevaTarifa);
