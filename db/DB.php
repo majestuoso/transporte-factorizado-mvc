@@ -18,17 +18,21 @@ class DB
 
     private function __construct() {}
 
-    // 🔹 Transportistas
     public function agregarTransportista(Transportista $t): void
     {
         $this->transportistas[] = $t;
     }
-
-    public function getTransportistas(): array
+    public function getTransportistaPorNombre(string $nombre): ?Transportista
+    {
+        foreach ($this->transportistas as $t) {
+            if ($t->getNombre() === $nombre) return $t;
+        }
+        return null;
+    }
+    public function &getTransportistas(): array
     {
         return $this->transportistas;
     }
-    
 
     public function getTransportistaPorId(int $id): ?Transportista
     {
@@ -37,15 +41,6 @@ class DB
         }
         return null;
     }
-
-    public function getTransportistaPorNombre(string $nombre): ?Transportista
-    {
-        foreach ($this->transportistas as $t) {
-            if ($t->getNombre() === $nombre) return $t;
-        }
-        return null;
-    }
-
     public function transportistasDisponibles(): array
     {
         return array_filter($this->transportistas, fn($t) => $t->isDisponible());
@@ -58,7 +53,7 @@ class DB
         return $disponibles[0] ?? null;
     }
 
-    public function borrarTransportistaPorIndice(int $i): void
+    public function eliminarTransportista(int $i): void
     {
         unset($this->transportistas[$i]);
         $this->transportistas = array_values($this->transportistas);
@@ -74,7 +69,6 @@ class DB
         }
     }
 
-    // 🔹 Rutas
     public function agregarRuta(Ruta $r): void
     {
         $this->rutas[] = $r;
@@ -101,10 +95,14 @@ class DB
         return null;
     }
 
-    public function eliminarRuta(int $i): void
+    public function eliminarRuta(int $id): bool
     {
-        unset($this->rutas[$i]);
-        $this->rutas = array_values($this->rutas);
+        if (!isset($this->rutas[$id])) {
+            return false;
+        }
+
+        unset($this->rutas[$id]);
+        return true;
     }
 
 
@@ -173,8 +171,7 @@ class DB
         }
         return false;
     }
-
-    public function eliminarViaje(int $id): bool
+     public function eliminarViaje(int $id): bool
     {
         foreach ($this->viajes as $i => $v) {
             if ($v->getId() === $id) {

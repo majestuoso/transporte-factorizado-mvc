@@ -1,7 +1,5 @@
 <?php
 
-
-
 class Opcion
 {
     private $nombre;

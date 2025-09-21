@@ -9,10 +9,12 @@ require_once(__DIR__ . '/controlador/TransportistaController.php');
 require_once(__DIR__ . '/controlador/RutaController.php');
 require_once(__DIR__ . '/controlador/ViajeController.php');
 
-// 🔹 Carga inicial
-load();
+// Función global simple para imprimir
+function mostrar(string $texto): void
+{
+    echo $texto;
+}
 
-// 🔹 Encabezado visual
 function mostrarEncabezado(): void
 {
     mostrar("\n");
@@ -26,17 +28,18 @@ function mostrarEncabezado(): void
 
 mostrarEncabezado();
 
-// 🔹 Instancia de controladores
+$loader = new Load();
+$loader->load();
+
 $transportistaController = new TransportistaController();
 $rutaController = new RutaController();
 $viajeController = new ViajeController();
 
-// 🔹 Submenú genérico
 function ejecutarSubmenu(string $titulo, array $opciones): void
 {
+    mostrar("\n\033[1;36m--- $titulo ---\033[0m\n");
     $submenu = new Menu($opciones);
     do {
-        mostrar("\n\033[1;36m--- $titulo ---\033[0m\n");
         $opcion = $submenu->elegir();
 
         if ($opcion !== null && $opcion->getNombre() !== 'Volver') {
@@ -48,7 +51,6 @@ function ejecutarSubmenu(string $titulo, array $opciones): void
     } while ($opcion !== null && $opcion->getNombre() !== 'Volver');
 }
 
-// 🔹 Opciones de cada módulo
 $opciones_transportistas = [
     new Opcion('Listar Transportistas', [$transportistaController, 'listar']),
     new Opcion('Agregar Transportista', [$transportistaController, 'agregar']),
@@ -69,22 +71,17 @@ $opciones_viajes = [
     new Opcion('Listar Viajes', [$viajeController, 'listar']),
     new Opcion('Agregar Viaje', [$viajeController, 'agregar']),
     new Opcion('Modificar Tarifa de Viaje', [$viajeController, 'modificar']),
-    new Opcion('Modificar Transportista en Viaje', [$viajeController, 'modificarTransportistaEnViaje']),
-    new Opcion('Modificar Ruta en Viaje', [$viajeController, 'modificarRutaEnViaje']),
-    new Opcion('Modificar Estado de Viaje', [$viajeController, 'modificarEstado']),
     new Opcion('Eliminar Viaje', [$viajeController, 'eliminar']),
     new Opcion('Volver', fn() => null),
 ];
 
-// 🔹 Menú principal
 $menuPrincipal = new Menu([
     new Opcion('🧍 Gestión de Transportistas', fn() => ejecutarSubmenu('Gestión de Transportistas', $opciones_transportistas)),
     new Opcion('🛣️ Gestión de Rutas', fn() => ejecutarSubmenu('Gestión de Rutas', $opciones_rutas)),
     new Opcion('🚚 Gestión de Viajes', fn() => ejecutarSubmenu('Gestión de Viajes', $opciones_viajes)),
-    new Opcion('❌ Salir', fn() => mostrar("\033[1;33mSaliendo del sistema.\033[0m\n")),
+    new Opcion('❌ Salir', fn() => salirDelSistema()),
 ]);
 
-// 🔹 Ejecución principal
 do {
     $opcion = $menuPrincipal->elegir();
 
@@ -100,7 +97,10 @@ if ($opcion === null) {
     mostrar("\033[1;31mOpción no válida. Por favor, elige una opción correcta.\033[0m\n");
 }
 
-function mostrar($string)
+function salirDelSistema(): void
 {
-    echo $string;
+    mostrar("\n\033[1;31m❌ Cerrando sesión...\033[0m\n");
+    mostrar("\033[1;34mGracias por usar el Sistema de Gestión de Transporte.\033[0m\n");
+    mostrar("\033[1;32mHasta pronto 👋\033[0m\n");
+    exit(0);
 }

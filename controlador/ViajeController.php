@@ -1,10 +1,7 @@
 <?php
 
-declare(strict_types=1);
-
 require_once(__DIR__ . '/../modelo/ViajeModel.php');
 require_once(__DIR__ . '/../vista/ViajeView.php');
-require_once(__DIR__ . '/../modelo/Viaje.php');
 
 class ViajeController
 {
@@ -17,82 +14,90 @@ class ViajeController
         $this->view = new ViajeView();
     }
 
-    public function agregar(): void
+    public function crear(): void
     {
         $datos = $this->view->solicitarDatos();
-        $viaje = $this->model->crearYGuardar($datos);
+        if (empty($datos)) return;
 
+        $viaje = $this->model->crearYGuardar($datos);
         if ($viaje) {
             $this->view->mostrarResumen($viaje);
         } else {
-            $this->view->showMessage("Datos inválidos. No se pudo registrar el viaje.");
+            $this->view->showMessage("❌ No se pudo registrar el viaje.");
         }
     }
 
     public function listar(): void
     {
         $viajes = $this->model->listar();
-
-        if (empty($viajes)) {
-            $this->view->showMessage("No hay viajes registrados.");
-            return;
-        }
-
         $this->view->mostrarViajes($viajes);
-    }
-
-    public function modificar(): void
-    {
-        $id = $this->view->solicitarId();
-        $nuevoValor = $this->view->solicitarTarifa();
-        $resultado = $this->model->modificarTarifa($id, $nuevoValor);
-
-        $this->view->showMessage($resultado ? "Tarifa modificada correctamente." : "No se pudo modificar la tarifa.");
-    }
-
-    public function modificarTransportistaEnViaje(): void
-    {
-        $id = $this->view->solicitarId();
-        $nuevoTransportistaId = $this->view->solicitarTransportistaId();
-        $resultado = $this->model->modificarTransportista($id, $nuevoTransportistaId);
-
-        $this->view->showMessage($resultado ? "Transportista actualizado correctamente." : "No se pudo actualizar el transportista.");
-    }
-
-    public function modificarRutaEnViaje(): void
-    {
-        $id = $this->view->solicitarId();
-        $nuevaRutaId = $this->view->solicitarRutaId();
-        $resultado = $this->model->modificarRuta($id, $nuevaRutaId);
-
-        $this->view->showMessage($resultado ? "Ruta actualizada correctamente." : "No se pudo actualizar la ruta.");
-    }
-
-    public function modificarEstado(): void
-    {
-        $id = $this->view->solicitarId();
-        $nuevoEstado = $this->view->solicitarEstado();
-        $resultado = $this->model->modificarEstado($id, $nuevoEstado);
-
-        $this->view->showMessage($resultado ? "Estado actualizado correctamente." : "No se pudo actualizar el estado.");
     }
 
     public function eliminar(): void
     {
+        echo "\n\033[1;34m🗑️ Eliminación de viaje\033[0m\n";
+
+        $this->listar();
+  
         $id = $this->view->solicitarId();
-        $resultado = $this->model->eliminar($id);
+        $ok = $this->model->eliminar($id);
 
-        $this->view->showMessage($resultado ? "Viaje eliminado correctamente." : "No se pudo eliminar el viaje.");
+        $mensaje = $ok ? "✅ Viaje eliminado." : "❌ No se pudo eliminar el viaje.";
+        $this->view->showMessage($mensaje);
     }
-    public function agregarDesdeDatos(array $datos): void
+
+    public function modificar(): void
     {
-        $transportistaId = (int)($datos['transportistaId'] ?? 0);
-        $rutaId = (int)($datos['rutaId'] ?? 0);
-        $estado = trim($datos['estado'] ?? '');
+        echo "\n\033[1;34m🔧 Entrando a modificación de viaje...\033[0m\n";
 
-        if ($transportistaId <= 0 || $rutaId <= 0 || $estado === '') return;
+        $this->listar();
 
-        $viaje = new Viaje($rutaId, $transportistaId, $estado);
-        DB::getInstance()->agregarViaje($viaje);
+        $id = $this->view->solicitarId();
+        $viaje = $this->model->buscarPorId($id);
+
+        if (!$viaje) {
+            $this->view->showMessage("❌ Viaje no encontrado.");
+            return;
+        }
+        $this->view->mostrarResumen($viaje);
+        echo "\n\033[1;33m🛠️ Opciones de modificación:\033[0m\n";
+        echo " \033[1;32m[1]\033[0m 💰 Modificar Tarifa de Viaje\n";
+        echo " \033[1;32m[2]\033[0m 🧍 Modificar Transportista en Viaje\n";
+        echo " \033[1;32m[3]\033[0m 🛣️  Modificar Ruta en Viaje\n";
+        echo " \033[1;32m[4]\033[0m 📌 Modificar Estado de Viaje\n";
+        echo " \033[1;32m[5]\033[0m 🗒️  Modificar Nota de Viaje\n";
+
+        $opcion = (int)trim(readline("Seleccione opción: "));
+        $ok = false;
+
+        switch ($opcion) {
+            case 1:
+                $tarifa = $this->view->solicitarTarifa();
+                $ok = $this->model->modificarTarifa($id, $tarifa);
+                break;
+            case 2:
+                $tid = $this->view->solicitarTransportistaId();
+                $ok = $this->model->modificarTransportista($id, $tid);
+                break;
+            case 3:
+                $rid = $this->view->solicitarRutaId();
+                $ok = $this->model->modificarRuta($id, $rid);
+                break;
+            case 4:
+                $estado = $this->view->solicitarEstado();
+                $ok = $this->model->modificarEstado($id, $estado);
+                break;
+            case 5:
+                $nota = trim(readline("Ingrese nueva nota del viaje: "));
+                $viaje->setNota($nota !== '' ? $nota : null);
+                $ok = true;
+                break;
+            default:
+                $this->view->showMessage("❌ Opción inválida.");
+                return;
+        }
+
+        $mensaje = $ok ? "✅ Modificación realizada." : "❌ No se pudo modificar.";
+        $this->view->showMessage($mensaje);
     }
 }
