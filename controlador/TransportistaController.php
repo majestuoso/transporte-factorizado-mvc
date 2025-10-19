@@ -1,5 +1,4 @@
 <?php
-
 declare(strict_types=1);
 
 require_once(__DIR__ . '/../modelo/TransportistaModel.php');
@@ -17,95 +16,93 @@ class TransportistaController
         $this->model = new TransportistaModel();
     }
 
-    public function agregar(): void
+    public function index(): void
     {
-        $datos = $this->view->solicitarDatos();
-        $t = $this->model->crearYGuardar($datos);
-
-        if ($t) {
-            $this->view->mostrarResumen($t);
-        } else {
-            $this->view->showMessage("❌ Datos inválidos. No se pudo registrar el transportista.");
-        }
+        $this->model->recargar();
+        $this->view->mostrarInicio();
     }
 
     public function listar(): void
     {
+        $this->model->recargar();
         $transportistas = $this->model->listar();
 
+        // Validar que todos sean instancias válidas
+        $transportistas = array_filter($transportistas, fn($t) => $t instanceof Transportista);
+
         if (empty($transportistas)) {
-            $this->view->showMessage("⚠️ No hay transportistas registrados.");
+            $this->view->showMessage("No hay transportistas registrados.");
             return;
         }
 
         $this->view->mostrarTransportistas($transportistas);
     }
 
-    public function eliminar(): void
+    public function agregar(): void
     {
-        $transportistas = $this->model->listar();
-        if (empty($transportistas)) {
-            $this->view->showMessage("⚠️ No hay transportistas registrados.");
-            return;
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $datos = $_POST;
+
+            if ($this->validar($datos)) {
+                $t = $this->model->crearYGuardar($datos);
+                if ($t instanceof Transportista) {
+                    $this->view->mostrarResumen($t);
+                } else {
+                    $this->view->showMessage("Error interno. No se pudo registrar el transportista.");
+                }
+            } else {
+                $this->view->showMessage("Datos inválidos. No se pudo registrar el transportista.");
+            }
+        } else {
+            $this->view->mostrarFormularioAgregar();
         }
+    }
 
-        $this->view->mostrarTransportistas($transportistas);
-
-        $id = (int) $this->view->getInput("Ingrese el ID del transportista a eliminar:");
-        $resultado = $this->model->eliminar($id);
-
-        $mensaje = $resultado
-            ? "✅ Transportista eliminado correctamente."
-            : "❌ No se encontró el transportista con ID $id.";
-
-        $this->view->showMessage($mensaje);
+    private function validar(array $data): bool
+    {
+        return isset($data['nombre'], $data['apellido'], $data['vehiculo']) &&
+               trim($data['nombre']) !== '' &&
+               trim($data['apellido']) !== '' &&
+               trim($data['vehiculo']) !== '';
     }
 
     public function modificar(): void
     {
-        $transportistas = $this->model->listar();
-        if (empty($transportistas)) {
-            $this->view->showMessage("⚠️ No hay transportistas registrados.");
-            return;
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id'])) {
+            $id = (int) $_POST['id'];
+            $this->model->modificarDesdeFormulario($id, $_POST);
+            $this->view->showMessage("Transportista modificado correctamente.");
+        } elseif (isset($_GET['id'])) {
+            $id = (int) $_GET['id'];
+            $transportista = $this->model->buscarPorId($id);
+            if ($transportista instanceof Transportista) {
+                $this->view->mostrarFormularioModificar($transportista);
+            } else {
+                $this->view->showMessage("Transportista no encontrado.");
+            }
+        } else {
+            $transportistas = $this->model->listar();
+            $transportistas = array_filter($transportistas, fn($t) => $t instanceof Transportista);
+            $this->view->mostrarSelectorModificar($transportistas);
         }
+    }
 
-        $this->view->mostrarTransportistas($transportistas);
+    public function eliminar(): void
+    {
+        if (isset($_GET['id'])) {
+            $id = (int) $_GET['id'];
+            $transportista = $this->model->buscarPorId($id);
 
-        $id = (int) $this->view->getInput("ID del transportista a modificar:");
-        $transportista = $this->model->buscarPorId($id);
-
-        if (!$transportista) {
-            $this->view->showMessage("❌ No se encontró el transportista con ID $id.");
-            return;
+            if ($transportista instanceof Transportista) {
+                $this->model->eliminar($id);
+                $this->view->showMessage("Transportista #$id eliminado correctamente.");
+            } else {
+                $this->view->showMessage("Transportista no encontrado.");
+            }
+        } else {
+            $transportistas = $this->model->listar();
+            $transportistas = array_filter($transportistas, fn($t) => $t instanceof Transportista);
+            $this->view->mostrarSelectorEliminar($transportistas);
         }
-
-        $this->view->showMessage("✏️ Modificando transportista #$id");
-
-        $nuevoNombre = $this->view->getInput("Nuevo nombre (Enter para mantener actual):");
-        if ($nuevoNombre !== '') {
-            $this->model->modificarNombre($id, $nuevoNombre);
-        }
-
-        $nuevoApellido = $this->view->getInput("Nuevo apellido (Enter para mantener actual):");
-        if ($nuevoApellido !== '') {
-            $this->model->modificarApellido($id, $nuevoApellido);
-        }
-
-        $nuevoVehiculo = $this->view->getInput("Nuevo vehículo (Enter para mantener actual):");
-        if ($nuevoVehiculo !== '') {
-            $this->model->modificarVehiculo($id, $nuevoVehiculo);
-        }
-
-        $estado = $this->view->getInput("Disponibilidad (1 disponible, 0 no disponible, Enter para mantener):");
-        if ($estado === '1' || $estado === '0') {
-            $this->model->modificarDisponibilidad($id, $estado === '1');
-        }
-
-        $nota = $this->view->getInput("Nueva nota (Enter para mantener actual):");
-        if ($nota !== '') {
-            $this->model->modificarNota($id, $nota);
-        }
-
-        $this->view->showMessage("✅ Modificación finalizada.");
     }
 }

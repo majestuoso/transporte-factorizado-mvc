@@ -1,82 +1,80 @@
 <?php
+declare(strict_types=1);
 
-require_once(__DIR__ . '/../modelo/Model.php');
-require_once(__DIR__ . '/../modelo/Ruta.php');
+require_once(__DIR__ . '/../db/DB.php');
+require_once(__DIR__ . '/Ruta.php');
 
-class RutaModel extends Model
+class RutaModel
 {
-    public function crearYGuardar(array $datos): ?Ruta
+    private PDO $pdo;
+
+    public function __construct()
     {
-        $nombre = trim($datos['nombre'] ?? '');
-        $distancia = (float)filter_var($datos['distancia'] ?? '', FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
-        $nota = trim($datos['nota'] ?? '');
-
-        if ($nombre === '' || $distancia <= 0) return null;
-
-        $ruta = new Ruta($nombre, $distancia, $nota ?: null);
-        $this->db->agregarRuta($ruta);
-        return $ruta;
+        // CORREGIDO: usar Singleton en lugar de new DB()
+        $this->pdo = DB::getInstance()->getPDO();
     }
 
     public function listar(): array
     {
-        return $this->db->getRutas();
+        $stmt = $this->pdo->query("SELECT * FROM rutas ORDER BY id ASC");
+        $rutas = [];
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $rutas[] = Ruta::desdeArray($row);
+        }
+        return $rutas;
+    }
+
+    public function crearYGuardar(array $data): ?Ruta
+    {
+        if (empty($data['nombre']) || !isset($data['distancia'])) {
+            return null;
+        }
+
+        $stmt = $this->pdo->prepare("
+            INSERT INTO rutas (nombre, distancia, nota)
+            VALUES (?, ?, ?)
+        ");
+        $stmt->execute([
+            $data['nombre'],
+            (int) $data['distancia'],
+            $data['nota'] ?? ''
+        ]);
+
+        $id = (int) $this->pdo->lastInsertId();
+        return $this->buscarPorId($id);
     }
 
     public function buscarPorId(int $id): ?Ruta
     {
-        return $this->db->getRutaPorId($id);
+        $stmt = $this->pdo->prepare("SELECT * FROM rutas WHERE id = ?");
+        $stmt->execute([$id]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row ? Ruta::desdeArray($row) : null;
     }
 
-    public function modificarNombre(int $id, string $nuevoNombre): bool
+    public function modificarDesdeFormulario(int $id, array $data): bool
     {
-        $ruta = $this->buscarPorId($id);
-        if (!$ruta || trim($nuevoNombre) === '') return false;
-        $ruta->setNombre(trim($nuevoNombre));
-        return true;
-    }
-
-    public function modificarDistancia(int $id, float $nuevaDistancia): bool
-    {
-        $ruta = $this->buscarPorId($id);
-        if ($ruta) {
-            $ruta->setDistancia($nuevaDistancia);
-            return true;
-        }
-        return false;
-    }
-
-    public function modificarNota(int $id, ?string $nuevaNota): bool
-    {
-        $ruta = $this->buscarPorId($id);
-        if ($ruta) {
-            $ruta->setNota($nuevaNota);
-            return true;
-        }
-        return false;
-    }
-
-    public function modificar(int $id, array $cambios): bool
-    {
-        $ruta = $this->buscarPorId($id);
-        if (!$ruta) return false;
-
-        if (isset($cambios['nombre'])) {
-            $ruta->setNombre(trim($cambios['nombre']));
-        }
-        if (isset($cambios['distancia'])) {
-            $distancia = (float)filter_var($cambios['distancia'], FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
-            if ($distancia > 0) $ruta->setDistancia($distancia);
-        }
-        if (array_key_exists('nota', $cambios)) {
-            $ruta->setNota(trim($cambios['nota']) ?: null);
-        }
-
-        return true;
+        $stmt = $this->pdo->prepare("
+            UPDATE rutas
+            SET nombre = ?, distancia = ?, nota = ?
+            WHERE id = ?
+        ");
+        return $stmt->execute([
+            $data['nombre'],
+            (int) $data['distancia'],
+            $data['nota'] ?? '',
+            $id
+        ]);
     }
 
     public function eliminar(int $id): bool
     {
-        return $this->db->eliminarRuta($id);
+        $stmt = $this->pdo->prepare("DELETE FROM rutas WHERE id = ?");
+        return $stmt->execute([$id]);
+    }
+
+    public function recargar(): void
+    {
+        // Método reservado para lógica futura
     }
 }

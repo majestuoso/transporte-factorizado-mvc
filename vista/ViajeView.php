@@ -1,148 +1,211 @@
 <?php
 
-require_once(__DIR__ . '/../db/DB.php');
-require_once(__DIR__ . '/../modelo/Model.php');
+require_once(__DIR__ . '/../modelo/Viaje.php');
 
-class ViajeView extends Model
+class ViajeView
 {
-    public function solicitarDatos(): array
-    {
-        $rutas = $this->db->getRutas();
-        if (empty($rutas)) {
-            mostrar("\033[1;31mNo hay rutas disponibles.\033[0m\n");
-            return [];
-        }
+   public function mostrarViajes(array $viajes): void
+{
+    echo "<h2>Lista de Viajes</h2>";
 
-        mostrar("\n\033[1;36m📍 Rutas disponibles:\033[0m\n");
-        foreach ($rutas as $ruta) {
-            mostrar("🛣️ ID: {$ruta->getId()} | Nombre: {$ruta->getNombre()} | Distancia: {$ruta->getDistancia()} km\n");
-        }
-
-        $rutaId = (int)trim(readline("Ingrese ID de ruta: "));
-        $ruta = $this->db->getRutaPorId($rutaId);
-        if (!$ruta) {
-            mostrar("\033[1;31mRuta no encontrada.\033[0m\n");
-            return [];
-        }
-
-        $transportistas = $this->db->transportistasDisponibles();
-        if (empty($transportistas)) {
-            mostrar("\033[1;31mNo hay transportistas disponibles.\033[0m\n");
-            return [];
-        }
-
-        mostrar("\n\033[1;36m🧍 Transportistas disponibles:\033[0m\n");
-        foreach ($transportistas as $t) {
-            mostrar("🧍 ID: {$t->getId()} | Nombre: {$t->getNombre()} {$t->getApellido()} | Vehículo: {$t->getVehiculo()} | Turno: {$t->getTurno()}\n");
-        }
-
-        $mejor = $this->db->turnoMenor();
-        if ($mejor) {
-            mostrar("\n\033[1;33m✅ Disponible con menor turno: {$mejor->getNombre()} {$mejor->getApellido()} (ID {$mejor->getId()}, Turno {$mejor->getTurno()})\033[0m\n");
-        }
-
-        $transportistaId = (int)trim(readline("Ingrese ID de transportista: "));
-        $transportista = $this->db->getTransportistaPorId($transportistaId);
-        if (!$transportista || !$transportista->isDisponible()) {
-            mostrar("\033[1;31mTransportista no disponible.\033[0m\n");
-            return [];
-        }
-
-        $estado = trim(readline("Ingrese estado del viaje (pendiente, en curso): "));
-        if ($estado === '') {
-            mostrar("\033[1;31mEstado inválido.\033[0m\n");
-            return [];
-        }
-
-        $tarifaTexto = trim(readline("Ingrese tarifa del viaje (ej: 15000.50): "));
-        $tarifa = (float)filter_var($tarifaTexto, FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
-        if ($tarifa <= 0) {
-            mostrar("\033[1;31mTarifa inválida.\033[0m\n");
-            return [];
-        }
-
-        $nota = trim(readline("Ingrese nota del viaje (opcional): "));
-        $notaFinal = $nota !== '' ? $nota : null;
-
-        return [
-            'rutaId' => $rutaId,
-            'transportistaId' => $transportistaId,
-            'estado' => $estado,
-            'tarifa' => $tarifa,
-            'nota' => $notaFinal
-        ];
+    if (empty($viajes)) {
+        echo "<p><strong>No hay viajes registrados.</strong></p>";
+        $this->mostrarBotonVolver();
+        return;
     }
 
-    public function solicitarId(): int
-    {
-        echo "Ingrese el ID del viaje: ";
-        return (int)trim(readline());
+    echo "<table border='1' cellpadding='6' cellspacing='0'>";
+    echo "<thead><tr>
+            <th>ID</th>
+            <th>Tarifa</th>
+            <th>Transportista</th>
+            <th>Ruta</th>
+            <th>Estado</th>
+            <th>Nota</th>
+          </tr></thead><tbody>";
+
+    foreach ($viajes as $v) {
+        echo "<tr>";
+        echo "<td>" . htmlspecialchars($v['id']) . "</td>";
+        echo "<td>" . htmlspecialchars($v['tarifa']) . "</td>";
+        echo "<td>" . htmlspecialchars($v['transportista']) . "</td>";
+        echo "<td>" . htmlspecialchars($v['ruta']) . "</td>";
+        echo "<td>" . htmlspecialchars($v['estado']) . "</td>";
+        echo "<td>" . htmlspecialchars($v['nota'] ?? 'Sin nota') . "</td>";
+        echo "</tr>";
     }
 
-    public function solicitarTarifa(): float
-    {
-        echo "Ingrese la nueva tarifa: ";
-        return (float)trim(readline());
-    }
+    echo "</tbody></table>";
+    $this->mostrarBotonVolver();
+}
 
-    public function solicitarTransportistaId(): int
-    {
-        echo "Ingrese el nuevo ID de transportista: ";
-        return (int)trim(readline());
-    }
 
-    public function solicitarRutaId(): int
-    {
-        echo "Ingrese el nuevo ID de ruta: ";
-        return (int)trim(readline());
-    }
+   public function mostrarViajesConEliminar(array $viajes): void
+{
+    echo "<h2>Eliminar Viaje</h2>";
 
-    public function solicitarEstado(): string
-    {
-        echo "Ingrese el nuevo estado del viaje: ";
-        return trim(readline());
-    }
-
-    public function mostrarResumen(Viaje $viaje): void
-    {
-        echo "\n\033[1;32mViaje registrado correctamente:\033[0m\n";
-        echo $viaje . "\n";
-    }
-
-    public function mostrarViajes(array $viajes): void
-    {
-        $db = DB::getInstance();
-
-        echo "\n\033[1;35m📦 Listado de Viajes:\033[0m\n";
-        printf("\033[1m%-4s | %-15s | %-20s | %-10s | %-8s | %-30s\033[0m\n", "ID", "Transportista", "Ruta", "Estado", "Tarifa", "Nota");
-        echo str_repeat("-", 110) . "\n";
-
+    if (empty($viajes)) {
+        echo "<p>No hay viajes para eliminar.</p>";
+    } else {
+        echo "<table border='1' cellpadding='5' cellspacing='0'>
+                <tr>
+                    <th>ID</th>
+                    <th>Tarifa</th>
+                    <th>ID Transportista</th>
+                    <th>ID Ruta</th>
+                    <th>Estado</th>
+                    <th>Nota</th>
+                    <th>Acción</th>
+                </tr>";
         foreach ($viajes as $v) {
-            $transportista = $db->getTransportistaPorId($v->getTransportistaId());
-            $ruta = $db->getRutaPorId($v->getRutaId());
-
-            $nombreTransportista = $transportista ? $transportista->getNombre() . ' ' . $transportista->getApellido() : "ID {$v->getTransportistaId()}";
-            $nombreRuta = $ruta ? $ruta->getNombre() : "ID {$v->getRutaId()}";
-            $tarifaFormateada = rtrim(rtrim(number_format($v->getTarifa(), 2, '.', ''), '0'), '.');
-            $notaViaje = $v->getNota() ?? "Sin nota";
-            $notaColor = "\033[0;32m{$notaViaje}\033[0m";
-
-            printf(
-                "%-4d | %-15s | %-20s | %-10s | $%-7s | %-30s\n",
-                $v->getId(),
-                $nombreTransportista,
-                $nombreRuta,
-                $v->getEstado(),
-                $tarifaFormateada,
-                $notaColor
-            );
+            echo "<tr>
+                    <td>{$v->getId()}</td>
+                    <td>{$v->getTarifa()}</td>
+                    <td>{$v->getTransportistaId()}</td>
+                    <td>{$v->getRutaId()}</td>
+                    <td>{$v->getEstado()}</td>
+                    <td>{$v->getNota()}</td>
+                    <td><a href='?path=viajes/eliminar&id={$v->getId()}'>Eliminar</a></td>
+                  </tr>";
         }
+        echo "</table>";
+    }
 
-        echo str_repeat("-", 110) . "\n";
+    $this->mostrarBotonVolver();
+}
+
+    public function mostrarViajesConModificar(array $viajes): void
+{
+    echo "<h2>Modificar Viaje</h2>";
+
+    if (empty($viajes)) {
+        echo "<p>No hay viajes para modificar.</p>";
+    } else {
+        echo "<table border='1' cellpadding='5' cellspacing='0'>
+                <tr>
+                    <th>ID</th>
+                    <th>Tarifa</th>
+                    <th>Transportista</th>
+                    <th>Ruta</th>
+                    <th>Estado</th>
+                    <th>Nota</th>
+                </tr>";
+        foreach ($viajes as $v) {
+            echo "<tr>
+                    <td>{$v['id']}</td>
+                    <td>{$v['tarifa']}</td>
+                    <td>{$v['transportista']}</td>
+                    <td>{$v['ruta']}</td>
+                    <td>{$v['estado']}</td>
+                    <td>{$v['nota']}</td>
+                  </tr>";
+        }
+        echo "</table><br>";
+
+        echo <<<HTML
+<form method="GET" action="">
+    <input type="hidden" name="path" value="viajes/modificar">
+    <label>ID a modificar:</label>
+    <input type="number" name="id" required>
+    <button type="submit">Modificar</button>
+</form>
+HTML;
+    }
+
+    $this->mostrarBotonVolver();
+}
+
+
+    public function formularioAgregar(array $transportistas, array $rutas): void
+    {
+        echo "<h2>Agregar Viaje</h2>";
+        echo '<form method="POST">';
+
+        echo '<label>Tarifa:</label><br>';
+        echo '<input type="number" step="0.01" name="tarifa" required><br><br>';
+
+        echo '<label>Transportista:</label><br>';
+        echo '<select name="transportistaId" required>';
+        foreach ($transportistas as $t) {
+            echo "<option value='{$t->getId()}'>{$t->getNombreCompleto()} (ID {$t->getId()})</option>";
+        }
+        echo '</select><br><br>';
+
+        echo '<label>Ruta:</label><br>';
+        echo '<select name="rutaId" required>';
+        foreach ($rutas as $r) {
+            echo "<option value='{$r->getId()}'>{$r->getNombre()} (ID {$r->getId()})</option>";
+        }
+        echo '</select><br><br>';
+
+        echo '<label>Estado:</label><br>';
+        echo '<select name="estado">
+                <option value="pendiente">Pendiente</option>
+                <option value="en curso">En curso</option>
+                <option value="completado">Completado</option>
+              </select><br><br>';
+
+        echo '<label>Nota (opcional):</label><br>';
+        echo '<input type="text" name="nota"><br><br>';
+
+        echo '<button type="submit">Guardar</button>';
+        echo '</form>';
+        $this->mostrarBotonVolver();
+    }
+
+    public function formularioModificar(Viaje $v): void
+    {
+        echo "<h2>Modificar Viaje #{$v->getId()}</h2>";
+        echo <<<HTML
+<form method="POST">
+    <input type="hidden" name="id" value="{$v->getId()}">
+
+    <label>Campo a modificar:</label><br>
+    <select name="campo" required>
+        <option value="tarifa">Tarifa</option>
+        <option value="transportista">ID Transportista</option>
+        <option value="ruta">ID Ruta</option>
+        <option value="estado">Estado</option>
+        <option value="nota">Nota</option>
+    </select><br><br>
+
+    <label>Nuevo valor:</label><br>
+    <input type="text" name="valor" required><br><br>
+
+    <button type="submit">Modificar</button>
+</form>
+HTML;
+        $this->mostrarBotonVolver();
+    }
+
+    public function mostrarResumen(Viaje $v): void
+    {
+        echo "<h2>Resumen del Viaje</h2>";
+        echo "<ul>
+                <li>ID: {$v->getId()}</li>
+                <li>Tarifa: {$v->getTarifa()}</li>
+                <li>ID Transportista: {$v->getTransportistaId()}</li>
+                <li>ID Ruta: {$v->getRutaId()}</li>
+                <li>Estado: {$v->getEstado()}</li>
+                <li>Nota: {$v->getNota()}</li>
+              </ul>";
+        $this->mostrarBotonVolver();
     }
 
     public function showMessage(string $mensaje): void
     {
-        echo "\n\033[1;34m{$mensaje}\033[0m\n";
+        echo "<p><strong>{$mensaje}</strong></p>";
+        $this->mostrarBotonVolver();
     }
+
+    private function mostrarBotonVolver(): void
+    {
+        echo <<<HTML
+<br><br>
+<form action="index.php" method="get">
+    <button type="submit">🏠 Volver al menú principal</button>
+</form>
+HTML;
+    }
+
 }

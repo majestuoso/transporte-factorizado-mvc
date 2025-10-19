@@ -1,66 +1,99 @@
 <?php
-require_once(__DIR__ . '/../modelo/Viaje.php');
+declare(strict_types=1);
 
+require_once(__DIR__ . '/../db/DB.php');
+require_once(__DIR__ . '/Viaje.php');
 
-class ViajeModel extends Model
+class ViajeModel
 {
+    private PDO $pdo;
 
-    public function crearYGuardar(array $datos): ?Viaje
+    public function __construct()
     {
-        $rutaId = isset($datos['rutaId']) ? (int)$datos['rutaId'] : null;
-        $transportistaId = isset($datos['transportistaId']) ? (int)$datos['transportistaId'] : null;
-        $estado = isset($datos['estado']) ? trim($datos['estado']) : null;
-        $tarifa = isset($datos['tarifa']) ? (float)$datos['tarifa'] : null;
-        $nota = isset($datos['nota']) ? trim($datos['nota']) : null;
-
-        if (!$rutaId || !$transportistaId || $estado === '' || $tarifa === null) {
-            return null;
-        }
-
-        $viaje = new Viaje($rutaId, $transportistaId, $estado, $tarifa, $nota);
-        $this->db->agregarViaje($viaje);
-        return $viaje;
+        $this->pdo = DB::getInstance()->getPDO();
     }
 
     public function listar(): array
     {
-        return $this->db->getViajes();
+        $stmt = $this->pdo->query("SELECT * FROM viajes ORDER BY id ASC");
+        $viajes = [];
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $viajes[] = Viaje::desdeArray($row);
+        }
+        return $viajes;
     }
 
-    public function modificarTarifa(int $id, float $nuevaTarifa): bool
+    public function crearYGuardar(array $data): ?Viaje
     {
-        return $this->db->actualizarTarifaViaje($id, $nuevaTarifa);
-    }
-    public function modificarNota(int $id, string $nota): bool
-    {
-        $viaje = $this->db->getViajePorId($id);
-        if (!$viaje) return false;
-        $viaje->setNota($nota);
-        return true;
+        if (empty($data['transportistaId']) || empty($data['rutaId']) || empty($data['tarifa'])) {
+            return null;
+        }
+
+        $stmt = $this->pdo->prepare("
+            INSERT INTO viajes (transportista_id, ruta_id, estado, tarifa, nota)
+            VALUES (?, ?, ?, ?, ?)
+        ");
+        $stmt->execute([
+            (int) $data['transportistaId'],
+            (int) $data['rutaId'],
+            $data['estado'] ?? 'pendiente',
+            (float) $data['tarifa'],
+            $data['nota'] ?? ''
+        ]);
+
+        $id = (int) $this->pdo->lastInsertId();
+        return $this->buscarPorId($id);
     }
 
-    public function modificarTransportista(int $id, int $nuevoTransportistaId): bool
+    public function buscarPorId(int $id): ?Viaje
     {
-        return $this->db->actualizarTransportistaEnViaje($id, $nuevoTransportistaId);
+        $stmt = $this->pdo->prepare("SELECT * FROM viajes WHERE id = ?");
+        $stmt->execute([$id]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row ? Viaje::desdeArray($row) : null;
     }
 
-
-    public function modificarRuta(int $id, int $nuevaRutaId): bool
+    public function modificarDesdeFormulario(int $id, array $data): bool
     {
-        return $this->db->actualizarRutaEnViaje($id, $nuevaRutaId);
+        $stmt = $this->pdo->prepare("
+            UPDATE viajes
+            SET transportista_id = ?, ruta_id = ?, estado = ?, tarifa = ?, nota = ?
+            WHERE id = ?
+        ");
+        return $stmt->execute([
+            (int) $data['transportistaId'],
+            (int) $data['rutaId'],
+            $data['estado'] ?? 'pendiente',
+            (float) $data['tarifa'],
+            $data['nota'] ?? '',
+            $id
+        ]);
     }
 
-    public function modificarEstado(int $id, string $nuevoEstado): bool
+    public function modificar(int $id, array $data): bool
     {
-        return $this->db->actualizarEstadoViaje($id, $nuevoEstado);
+        $campos = [];
+        $valores = [];
+
+        foreach ($data as $clave => $valor) {
+            $campos[] = "$clave = ?";
+            $valores[] = $valor;
+        }
+
+        $valores[] = $id;
+        $sql = "UPDATE viajes SET " . implode(', ', $campos) . " WHERE id = ?";
+        $stmt = $this->pdo->prepare($sql);
+        return $stmt->execute($valores);
     }
 
     public function eliminar(int $id): bool
     {
-        return $this->db->eliminarViaje($id);
+        $stmt = $this->pdo->prepare("DELETE FROM viajes WHERE id = ?");
+        return $stmt->execute([$id]);
     }
-    public function buscarPorId(int $id): ?Viaje
+
+    public function recargar(): void
     {
-        return $this->db->getViajePorId($id);
+        // Método reservado para lógica futura
     }
 }

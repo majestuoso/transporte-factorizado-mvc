@@ -1,185 +1,59 @@
 <?php
-
 class DB
 {
-    private static ?DB $instance = null;
+    private static ?DB $instancia = null;
+    private PDO $pdo;
 
-    private array $transportistas = [];
-    private array $rutas = [];
-    private array $viajes = [];
+    private function __construct()
+    {
+        $rutaBD = __DIR__ . '/transporte.sqlite';
+        $this->pdo = new PDO('sqlite:' . $rutaBD);
+        $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        $this->crearTablas();
+    }
 
     public static function getInstance(): DB
     {
-        if (self::$instance === null) {
-            self::$instance = new DB();
+        if (self::$instancia === null) {
+            self::$instancia = new DB();
         }
-        return self::$instance;
+        return self::$instancia;
     }
 
-    private function __construct() {}
-
-    public function agregarTransportista(Transportista $t): void
+    public function getPDO(): PDO
     {
-        $this->transportistas[] = $t;
-    }
-    public function getTransportistaPorNombre(string $nombre): ?Transportista
-    {
-        foreach ($this->transportistas as $t) {
-            if ($t->getNombre() === $nombre) return $t;
-        }
-        return null;
-    }
-    public function &getTransportistas(): array
-    {
-        return $this->transportistas;
+        return $this->pdo;
     }
 
-    public function getTransportistaPorId(int $id): ?Transportista
+    private function crearTablas(): void
     {
-        foreach ($this->transportistas as $t) {
-            if ($t->getId() === $id) return $t;
-        }
-        return null;
-    }
-    public function transportistasDisponibles(): array
-    {
-        return array_filter($this->transportistas, fn($t) => $t->isDisponible());
-    }
+        $this->pdo->exec("
+            CREATE TABLE IF NOT EXISTS transportistas (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                nombre TEXT NOT NULL,
+                apellido TEXT NOT NULL,
+                vehiculo TEXT NOT NULL,
+                disponible INTEGER NOT NULL DEFAULT 1,
+                nota TEXT
+            );
 
-    public function turnoMenor(): ?Transportista
-    {
-        $disponibles = $this->transportistasDisponibles();
-        usort($disponibles, fn($a, $b) => $a->getTurno() <=> $b->getTurno());
-        return $disponibles[0] ?? null;
-    }
+            CREATE TABLE IF NOT EXISTS rutas (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                nombre TEXT NOT NULL,
+                distancia INTEGER NOT NULL,
+                nota TEXT
+            );
 
-    public function eliminarTransportista(int $i): void
-    {
-        unset($this->transportistas[$i]);
-        $this->transportistas = array_values($this->transportistas);
-    }
-
-    public function actualizarTransportista(Transportista $t): void
-    {
-        foreach ($this->transportistas as $i => $actual) {
-            if ($actual->getId() === $t->getId()) {
-                $this->transportistas[$i] = $t;
-                return;
-            }
-        }
-    }
-
-    public function agregarRuta(Ruta $r): void
-    {
-        $this->rutas[] = $r;
-    }
-
-    public function getRutas(): array
-    {
-        return $this->rutas;
-    }
-
-    public function getRutaPorId(int $id): ?Ruta
-    {
-        foreach ($this->rutas as $r) {
-            if ($r->getId() === $id) return $r;
-        }
-        return null;
-    }
-
-    public function getRutaPorNombre(string $nombre): ?Ruta
-    {
-        foreach ($this->rutas as $r) {
-            if ($r->getNombre() === $nombre) return $r;
-        }
-        return null;
-    }
-
-    public function eliminarRuta(int $id): bool
-    {
-        if (!isset($this->rutas[$id])) {
-            return false;
-        }
-
-        unset($this->rutas[$id]);
-        return true;
-    }
-
-
-    public function agregarViaje(Viaje $v): void
-    {
-        $this->viajes[] = $v;
-    }
-
-    public function getViajes(): array
-    {
-        return $this->viajes;
-    }
-
-    public function getViajePorId(int $id): ?Viaje
-    {
-        foreach ($this->viajes as $v) {
-            if ($v->getId() === $id) return $v;
-        }
-        return null;
-    }
-
-    public function actualizarTarifaViaje(int $id, float $tarifa): bool
-    {
-        foreach ($this->viajes as $i => $v) {
-            if ($v->getId() === $id) {
-                $v->setTarifa($tarifa);
-                $this->viajes[$i] = $v;
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public function actualizarTransportistaEnViaje(int $id, int $transportistaId): bool
-    {
-        foreach ($this->viajes as $i => $v) {
-            if ($v->getId() === $id) {
-                $v->setTransportistaId($transportistaId);
-                $this->viajes[$i] = $v;
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public function actualizarRutaEnViaje(int $id, int $rutaId): bool
-    {
-        foreach ($this->viajes as $i => $v) {
-            if ($v->getId() === $id) {
-                $v->setRutaId($rutaId);
-                $this->viajes[$i] = $v;
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public function actualizarEstadoViaje(int $id, string $estado): bool
-    {
-        foreach ($this->viajes as $i => $v) {
-            if ($v->getId() === $id) {
-                $v->setEstado($estado);
-                $this->viajes[$i] = $v;
-                return true;
-            }
-        }
-        return false;
-    }
-     public function eliminarViaje(int $id): bool
-    {
-        foreach ($this->viajes as $i => $v) {
-            if ($v->getId() === $id) {
-                unset($this->viajes[$i]);
-                $this->viajes = array_values($this->viajes);
-                return true;
-            }
-        }
-        return false;
+            CREATE TABLE IF NOT EXISTS viajes (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                transportista_id INTEGER NOT NULL,
+                ruta_id INTEGER NOT NULL,
+                estado TEXT NOT NULL DEFAULT 'pendiente',
+                tarifa REAL NOT NULL,
+                nota TEXT,
+                FOREIGN KEY (transportista_id) REFERENCES transportistas(id),
+                FOREIGN KEY (ruta_id) REFERENCES rutas(id)
+            );
+        ");
     }
 }

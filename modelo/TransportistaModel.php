@@ -1,92 +1,96 @@
 <?php
-
 declare(strict_types=1);
 
-require_once(__DIR__ . '/Model.php');
+require_once(__DIR__ . '/../db/DB.php');
 require_once(__DIR__ . '/Transportista.php');
 
-class TransportistaModel extends Model
+class TransportistaModel
 {
-    public function crearYGuardar(array $datos): ?Transportista
+    private PDO $pdo;
+
+    public function __construct()
     {
-        if (empty($datos['nombre']) || empty($datos['apellido']) || empty($datos['vehiculo'])) {
-            return null;
-        }
-
-        $transportista = new Transportista(
-            $datos['nombre'],
-            $datos['apellido'],
-            $datos['vehiculo'],
-            (bool)($datos['disponible'] ?? true),
-            $datos['nota'] ?? null
-        );
-
-        $id = count($this->db->getTransportistas()) + 1;
-        $transportista->setId($id);
-
-
-        $transportistas = &$this->db->getTransportistas();
-        $transportistas[$id] = $transportista;
-
-        return $transportista;
+        // Usar correctamente el patrón Singleton
+        $this->pdo = DB::getInstance()->getPDO();
     }
 
     public function listar(): array
     {
-        return $this->db->getTransportistas();
+        $stmt = $this->pdo->query("SELECT * FROM transportistas ORDER BY id ASC");
+        $transportistas = [];
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $transportistas[] = Transportista::desdeArray($row);
+        }
+        return $transportistas;
+    }
+
+    public function crearYGuardar(array $data): ?Transportista
+    {
+        if (empty($data['nombre']) || empty($data['apellido']) || empty($data['vehiculo'])) {
+            return null;
+        }
+
+        $stmt = $this->pdo->prepare("
+            INSERT INTO transportistas (nombre, apellido, vehiculo, disponible, nota)
+            VALUES (?, ?, ?, ?, ?)
+        ");
+        $stmt->execute([
+            $data['nombre'],
+            $data['apellido'],
+            $data['vehiculo'],
+            isset($data['disponible']) ? 1 : 0,
+            $data['nota'] ?? ''
+        ]);
+
+        $id = (int) $this->pdo->lastInsertId();
+        return $this->buscarPorId($id);
     }
 
     public function buscarPorId(int $id): ?Transportista
     {
-        return $this->db->getTransportistas()[$id] ?? null;
+        $stmt = $this->pdo->prepare("SELECT * FROM transportistas WHERE id = ?");
+        $stmt->execute([$id]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $row ? Transportista::desdeArray($row) : null;
+    }
+
+    public function modificarDesdeFormulario(int $id, array $data): bool
+    {
+        $stmt = $this->pdo->prepare("
+            UPDATE transportistas
+            SET nombre = ?, apellido = ?, vehiculo = ?, disponible = ?, nota = ?
+            WHERE id = ?
+        ");
+        return $stmt->execute([
+            $data['nombre'],
+            $data['apellido'],
+            $data['vehiculo'],
+            isset($data['disponible']) ? (int)$data['disponible'] : 0,
+
+            $data['nota'] ?? '',
+            $id
+        ]);
     }
 
     public function eliminar(int $id): bool
     {
-        $transportistas = &$this->db->getTransportistas();
-        if (!isset($transportistas[$id])) return false;
-
-        unset($transportistas[$id]);
-        return true;
+        $stmt = $this->pdo->prepare("DELETE FROM transportistas WHERE id = ?");
+        return $stmt->execute([$id]);
     }
 
-    public function modificarNombre(int $id, string $nombre): bool
+    public function recargar(): void
     {
-        $t = $this->buscarPorId($id);
-        if (!$t) return false;
-        $t->setNombre($nombre);
-        return true;
+        // Método reservado para lógica futura
     }
 
-    public function modificarApellido(int $id, string $apellido): bool
+    public function listarDisponibles(): array
     {
-        $t = $this->buscarPorId($id);
-        if (!$t) return false;
-        $t->setApellido($apellido);
-        return true;
-    }
-
-    public function modificarVehiculo(int $id, string $vehiculo): bool
-    {
-        $t = $this->buscarPorId($id);
-        if (!$t) return false;
-        $t->setVehiculo($vehiculo);
-        return true;
-    }
-
-    public function modificarDisponibilidad(int $id, bool $estado): bool
-    {
-        $t = $this->buscarPorId($id);
-        if (!$t) return false;
-        $t->setDisponible($estado);
-        return true;
-    }
-
-    public function modificarNota(int $id, string $nota): bool
-    {
-        $t = $this->buscarPorId($id);
-        if (!$t) return false;
-        $t->setNota($nota);
-        return true;
+        $stmt = $this->pdo->prepare("SELECT * FROM transportistas WHERE disponible = 1 ORDER BY id ASC");
+        $stmt->execute();
+        $transportistas = [];
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $transportistas[] = Transportista::desdeArray($row);
+        }
+        return $transportistas;
     }
 }
