@@ -117,15 +117,17 @@ HTML;
         $this->mostrarBotonVolver();
     }
 
-    private function mostrarBotonVolver(): void
-    {
-        echo <<<HTML
+   private function mostrarBotonVolver(): void
+{
+    echo <<<HTML
 <br><br>
 <form action="index.php" method="get">
-    <button type="submit">🏠 Volver al menú principal</button>
+    <input type="hidden" name="path" value="panel_personal">
+    <button type="submit" class="btn btn-outline-light">🏠 Volver al Panel del Personal</button>
 </form>
 HTML;
-    }
+}
+
     public function mostrarSelectorModificar(array $rutas): void
 {
     echo "<h2>Seleccionar Ruta para Modificar</h2>";

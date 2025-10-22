@@ -25,35 +25,48 @@ class DB
         return $this->pdo;
     }
 
-    private function crearTablas(): void
-    {
-        $this->pdo->exec("
-            CREATE TABLE IF NOT EXISTS transportistas (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                nombre TEXT NOT NULL,
-                apellido TEXT NOT NULL,
-                vehiculo TEXT NOT NULL,
-                disponible INTEGER NOT NULL DEFAULT 1,
-                nota TEXT
-            );
+   private function crearTablas(): void
+{
+    $this->pdo->exec(
+        "CREATE TABLE IF NOT EXISTS transportistas (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nombre TEXT NOT NULL,
+            apellido TEXT NOT NULL,
+            vehiculo TEXT NOT NULL,
+            disponible INTEGER NOT NULL DEFAULT 1,
+            nota TEXT
+        )"
+    );
 
-            CREATE TABLE IF NOT EXISTS rutas (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                nombre TEXT NOT NULL,
-                distancia INTEGER NOT NULL,
-                nota TEXT
-            );
+    $this->pdo->exec(
+        "CREATE TABLE IF NOT EXISTS rutas (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            nombre TEXT NOT NULL,
+            distancia INTEGER NOT NULL,
+            nota TEXT
+        )"
+    );
 
-            CREATE TABLE IF NOT EXISTS viajes (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                transportista_id INTEGER NOT NULL,
-                ruta_id INTEGER NOT NULL,
-                estado TEXT NOT NULL DEFAULT 'pendiente',
-                tarifa REAL NOT NULL,
-                nota TEXT,
-                FOREIGN KEY (transportista_id) REFERENCES transportistas(id),
-                FOREIGN KEY (ruta_id) REFERENCES rutas(id)
-            );
-        ");
-    }
+    $this->pdo->exec(
+        "CREATE TABLE IF NOT EXISTS viajes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            transportista_id INTEGER NOT NULL,
+            ruta_id INTEGER NOT NULL,
+            estado TEXT NOT NULL DEFAULT 'pendiente',
+            tarifa REAL NOT NULL,
+            nota TEXT,
+            FOREIGN KEY (transportista_id) REFERENCES transportistas(id),
+            FOREIGN KEY (ruta_id) REFERENCES rutas(id)
+        )"
+    );
+
+    $this->pdo->exec(
+        "CREATE TABLE IF NOT EXISTS usuarios (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            usuario TEXT NOT NULL UNIQUE,
+            clave TEXT NOT NULL,
+            rol TEXT NOT NULL CHECK(rol IN ('cliente', 'personal'))
+        )"
+    );
+}
 }

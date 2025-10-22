@@ -1,0 +1,71 @@
+/* === Estilos para página principal (landing) === */
+body.landing, html.landing {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  font-family: sans-serif;
+}
+
+.carousel-item img {
+  object-fit: cover;
+  height: 100vh;
+  width: 100%;
+  filter: brightness(0.5);
+}
+
+.overlay {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2rem;
+  color: white;
+  z-index: 10;
+}
+
+.titulo {
+  max-width: 600px;
+}
+
+.titulo h1 {
+  font-size: 3rem;
+  background-color: rgba(0,0,0,0.6);
+  padding: 1rem 2rem;
+  border-radius: 1rem;
+  margin-bottom: 1rem;
+}
+
+.titulo p {
+  font-size: 1.2rem;
+  background-color: rgba(0,0,0,0.5);
+  padding: 1rem;
+  border-radius: 1rem;
+}
+
+.panel {
+  background-color: rgba(0,0,0,0.7);
+  padding: 2rem;
+  border-radius: 1rem;
+  width: 350px;
+}
+
+.panel h2 {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  color: #fff;
+}
+
+.nav-links a {
+  display: block;
+  color: white;
+  margin-bottom: 0.5rem;
+  text-decoration: none;
+}
+
+.nav-links a:hover {
+  text-decoration: underline;
+}
+
