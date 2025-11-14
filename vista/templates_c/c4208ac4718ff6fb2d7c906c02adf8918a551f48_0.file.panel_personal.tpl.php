@@ -1,18 +1,18 @@
 <?php
-/* Smarty version 3.1.48, created on 2025-10-22 18:01:55
-  from '/opt/lampp/htdocs/transporte_refactorizado/vista/panel_personal.tpl' */
+/* Smarty version 3.1.48, created on 2025-11-14 00:15:24
+  from '/opt/lampp/htdocs/transporte/vista/panel_personal.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '3.1.48',
-  'unifunc' => 'content_68f8fff398d8f7_95439106',
+  'unifunc' => 'content_6916668cd93284_90186887',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
-    '37a30f968e81dcd96f13528201ae92e50614c86e' => 
+    'c4208ac4718ff6fb2d7c906c02adf8918a551f48' => 
     array (
-      0 => '/opt/lampp/htdocs/transporte_refactorizado/vista/panel_personal.tpl',
-      1 => 1761148913,
+      0 => '/opt/lampp/htdocs/transporte/vista/panel_personal.tpl',
+      1 => 1763075690,
       2 => 'file',
     ),
   ),
@@ -20,7 +20,7 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_68f8fff398d8f7_95439106 (Smarty_Internal_Template $_smarty_tpl) {
+function content_6916668cd93284_90186887 (Smarty_Internal_Template $_smarty_tpl) {
 ?><!DOCTYPE html>
 <html lang="es">
 <head>
@@ -149,8 +149,9 @@ function content_68f8fff398d8f7_95439106 (Smarty_Internal_Template $_smarty_tpl)
   <div class="container-fluid panel-contenido">
     <div class="titulo text-center mb-4">
       <h1>Panel del Personal</h1>
-      <p>Bienvenido, <strong><?php echo $_smarty_tpl->tpl_vars['usuario']->value;?>
+     <p>Bienvenido, <strong><?php echo mb_strtoupper($_smarty_tpl->tpl_vars['usuario']->value, 'UTF-8');?>
 </strong>.</p>
+
       <p class="mt-3 text-white-50">Seleccioná una opción del menú para gestionar el sistema.</p>
     </div>
 
@@ -163,7 +164,7 @@ function content_68f8fff398d8f7_95439106 (Smarty_Internal_Template $_smarty_tpl)
           <div class="menu-content">
             <a href="?path=transportistas/listar">📋 Listar</a>
             <a href="?path=transportistas/agregar">➕ Agregar</a>
-            <a href="?path=transportistas/modificar">✏️ Modificar</a>
+            <a href="?path=transportistas/editar">✏️ Modificar</a>
             <a href="?path=transportistas/eliminar">🗑️ Eliminar</a>
           </div>
         </div>

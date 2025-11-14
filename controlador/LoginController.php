@@ -1,81 +1,84 @@
 <?php
-require_once(__DIR__ . '/../modelo/UsuarioModel.php');
+declare(strict_types=1);
+
+require_once(__DIR__ . '/../modelo/PersonalModel.php');
+require_once(__DIR__ . '/../modelo/TransportistaModel.php');
 require_once(__DIR__ . '/../vista/View.php');
 
 class LoginController
 {
-    public function loginCliente(): void
+    private PersonalModel $personalModel;
+    private TransportistaModel $transportistaModel;
+
+    public function __construct()
     {
-        $this->procesarLogin('cliente');
+        $this->personalModel = new PersonalModel();
+        $this->transportistaModel = new TransportistaModel();
     }
 
+    // ---------------- LOGIN PERSONAL ----------------
     public function loginPersonal(): void
     {
-        $this->procesarLogin('personal');
+        session_start();
+        $nombre = $_POST['nombre'] ?? '';
+        $clave  = $_POST['clave'] ?? '';
+
+        $datos = $this->personalModel->loginPorNombre($nombre, $clave);
+
+        if ($datos) {
+            $_SESSION['usuario'] = $datos->getNombre(); // aquí guardamos el nombre como identificador
+            $_SESSION['nombre']  = ucfirst($datos->getNombre());
+            $_SESSION['id']      = $datos->getId();
+            $_SESSION['rol']     = 'personal';
+            header("Location: ?path=panel_personal");
+            exit;
+        } else {
+            $view = new View();
+            $view->render('login.tpl', [
+                'mensaje' => "⚠️ Nombre o contraseña incorrectos"
+            ]);
+        }
     }
 
-    private function procesarLogin(string $rolEsperado): void
+    // ---------------- LOGIN TRANSPORTISTA ----------------
+     public function loginTransportista(): void
     {
         session_start();
         $usuario = $_POST['usuario'] ?? '';
-        $clave = $_POST['clave'] ?? '';
+        $clave   = $_POST['clave'] ?? '';
 
-        $model = new UsuarioModel();
-        $datos = $model->buscarPorUsuario($usuario);
+        $datos = $this->transportistaModel->loginPorUsuario($usuario, $clave);
 
-        if ($datos && password_verify($clave, $datos['clave']) && $datos['rol'] === $rolEsperado) {
-            $_SESSION['usuario'] = ucfirst($datos['usuario']);
-            $_SESSION['rol'] = $datos['rol'];
-            header("Location: ?path=panel_" . $rolEsperado);
+        if ($datos) {
+            $_SESSION['usuario'] = $datos->getUsuario();
+            $_SESSION['nombre']  = ucfirst($datos->getNombre());
+            $_SESSION['id']      = $datos->getId();
+            $_SESSION['rol']     = 'transportista';
+            header("Location: ?path=panel_transportista");
             exit;
         } else {
-            echo "<p style='color:red;'>Usuario o contraseña incorrectos</p>";
-            echo "<a href='?path=inicio'>🔙 Volver</a>";
+            $view = new View();
+            $view->render('login.tpl', [
+                'mensaje' => "⚠️ Usuario o contraseña incorrectos"
+            ]);
         }
     }
 
-    public function registro(): void
-    {
-        $view = new View();
-
-        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-            $usuario = $_POST['usuario'] ?? '';
-            $clave = $_POST['clave'] ?? '';
-            $rol = $_POST['rol'] ?? '';
-
-            if ($usuario && $clave && in_array($rol, ['cliente', 'personal'])) {
-                $claveHash = password_hash($clave, PASSWORD_DEFAULT);
-                $model = new UsuarioModel();
-                $exito = $model->crear($usuario, $claveHash, $rol);
-
-                if ($exito) {
-                    $mensaje = "✅ Usuario creado correctamente. Ahora podés iniciar sesión.";
-                    $view->render('registro.tpl', ['mensaje' => $mensaje]);
-                    return;
-                } else {
-                    $mensaje = "⚠️ El usuario ya existe.";
-                }
-            } else {
-                $mensaje = "⚠️ Datos incompletos.";
-            }
-
-            $view->render('registro.tpl', ['mensaje' => $mensaje]);
-        } else {
-            $view->render('registro.tpl');
-        }
-    }
-
+    // ---------------- LOGOUT ----------------
     public function logout(): void
-    {
-        session_start();
-        session_destroy();
-        header("Location: ?path=inicio");
-        exit;
+{
+    session_start();
+    $_SESSION = [];
+    if (ini_get("session.use_cookies")) {
+        $params = session_get_cookie_params();
+        setcookie(session_name(), '', time() - 42000,
+            $params["path"], $params["domain"],
+            $params["secure"], $params["httponly"]
+        );
     }
+    session_destroy();
+    header("Location: ?path=inicio");
+    exit;
+}
 
-    public function mostrarFormularioRegistro(): void
-    {
-        $view = new View();
-        $view->render('registro.tpl');
-    }
 }

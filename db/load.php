@@ -28,74 +28,100 @@ class Load
         $rutaModel = new RutaModel();
         $viajeModel = new ViajeModel();
 
-        // Transportistas
+        // === Transportistas con usuarios asociados ===
+        // Juan
+        $pdo->prepare("INSERT INTO usuarios (usuario, clave, rol) VALUES (?, ?, ?)")
+            ->execute(['juan', '1234', 'transportista']);
+        $usuarioJuanId = (int)$pdo->lastInsertId();
+
         $juan = $transportistaModel->crearYGuardar([
-            'nombre' => 'Juan',
-            'apellido' => 'Perez',
+            'usuario_id' => $usuarioJuanId,
+            'nombre'     => 'Juan',
+            'apellido'   => 'Perez',
             'disponible' => true,
-            'vehiculo' => 'Mercedes 1114',
-            'nota' => 'Entrega de materiales peligrosos'
+            'vehiculo'   => 'Mercedes 1114',
+            'nota'       => 'Entrega de materiales peligrosos'
         ]);
+
+        // Pablo
+        $pdo->prepare("INSERT INTO usuarios (usuario, clave, rol) VALUES (?, ?, ?)")
+            ->execute(['pablo', '1234', 'transportista']);
+        $usuarioPabloId = (int)$pdo->lastInsertId();
 
         $pablo = $transportistaModel->crearYGuardar([
-            'nombre' => 'Pablo',
-            'apellido' => 'Gomez',
+            'usuario_id' => $usuarioPabloId,
+            'nombre'     => 'Pablo',
+            'apellido'   => 'Gomez',
             'disponible' => false,
-            'vehiculo' => 'Scania 113',
-            'nota' => 'Entrega urgente'
+            'vehiculo'   => 'Scania 113',
+            'nota'       => 'Entrega urgente'
         ]);
 
+        // Pedro
+        $pdo->prepare("INSERT INTO usuarios (usuario, clave, rol) VALUES (?, ?, ?)")
+            ->execute(['pedro', '1234', 'transportista']);
+        $usuarioPedroId = (int)$pdo->lastInsertId();
+
         $pedro = $transportistaModel->crearYGuardar([
-            'nombre' => 'Pedro',
-            'apellido' => 'Alvarez',
+            'usuario_id' => $usuarioPedroId,
+            'nombre'     => 'Pedro',
+            'apellido'   => 'Alvarez',
             'disponible' => true,
-            'vehiculo' => 'Fiat Tector 1123',
-            'nota' => 'Cuidado con las curvas, chofer novato'
+            'vehiculo'   => 'Fiat Tector 1123',
+            'nota'       => 'Cuidado con las curvas, chofer novato'
         ]);
 
         echo "<h3>Transportistas creados:</h3><ul>";
         foreach ([$juan, $pablo, $pedro] as $t) {
-            echo "<li>{$t->getId()}: {$t->getNombreCompleto()} - {$t->getVehiculo()}</li>";
+            if ($t) {
+                echo "<li>{$t->getId()}: {$t->getNombre()} - {$t()}</li>";
+            } else {
+                echo "<li>Error al crear transportista</li>";
+            }
         }
         echo "</ul>";
 
-        // Rutas
+        // === Rutas ===
         $numancia = $rutaModel->crearYGuardar([
-            'nombre' => 'La Numancia',
+            'nombre'    => 'La Numancia',
             'distancia' => 130,
-            'nota' => 'Ruta con muchas curvas'
+            'nota'      => 'Ruta con muchas curvas'
         ]);
 
         $teros = $rutaModel->crearYGuardar([
-            'nombre' => 'Los Teros',
+            'nombre'    => 'Los Teros',
             'distancia' => 30,
-            'nota' => 'Ruta corta y directa'
+            'nota'      => 'Ruta corta y directa'
         ]);
 
         $bonete = $rutaModel->crearYGuardar([
-            'nombre' => 'El Bonete',
+            'nombre'    => 'El Bonete',
             'distancia' => 120,
-            'nota' => 'Ruta con pendientes elevadas'
+            'nota'      => 'Ruta con pendientes elevadas'
         ]);
 
         echo "<h3>Rutas creadas:</h3><ul>";
         foreach ([$numancia, $teros, $bonete] as $r) {
-            echo "<li>{$r->getId()}: {$r->getNombre()} - {$r->getDistancia()} km</li>";
+            if ($r) {
+                echo "<li>{$r->getId()}: {$r->getNombre()} - {$r->getDistancia()} km</li>";
+            } else {
+                echo "<li>Error al crear ruta</li>";
+            }
         }
         echo "</ul>";
 
-        // Viaje
+        // === Viaje ===
         $viaje = $viajeModel->crearYGuardar([
-            'transportistaId' => $pablo->getId(),
-            'rutaId' => $bonete->getId(),
-            'estado' => 'pendiente',
-            'tarifa' => 1500,
-            'nota' => 'Entrega de materiales peligrosos'
+            'transportistaId' => $pablo ? $pablo->getId() : null,
+            'rutaId'          => $bonete ? $bonete->getId() : null,
+            'estado'          => 'pendiente',
+            'tarifa'          => 1500,
+            'nota'            => 'Entrega de materiales peligrosos'
         ]);
 
         echo "<h3>Viaje creado:</h3>";
         if ($viaje) {
-            echo "<p>ID: {$viaje->getId()} | Transportista: {$pablo->getNombreCompleto()} | Ruta: {$bonete->getNombre()} | Tarifa: {$viaje->getTarifa()} | Estado: {$viaje->getEstado()}</p>";
+            echo "<p>ID: {$viaje->getId()} | Transportista: {$pablo->getNombre()} | Ruta: {$bonete->getNombre()} | Tarifa: {$viaje->getTarifa()} | Estado: {$viaje->getEstado()}</p>";
         } else {
             echo "<p>Error al crear el viaje.</p>";
         }

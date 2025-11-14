@@ -1,18 +1,18 @@
 <?php
-/* Smarty version 3.1.48, created on 2025-10-22 14:58:22
-  from '/opt/lampp/htdocs/transporte_refactorizado/vista/noticias.tpl' */
+/* Smarty version 3.1.48, created on 2025-11-13 20:09:22
+  from '/opt/lampp/htdocs/transporte/vista/servicios.tpl' */
 
 /* @var Smarty_Internal_Template $_smarty_tpl */
 if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   'version' => '3.1.48',
-  'unifunc' => 'content_68f8d4ee0a5d26_70696583',
+  'unifunc' => 'content_69162ce2d18005_75418887',
   'has_nocache_code' => false,
   'file_dependency' => 
   array (
-    '900d9779c19bc17ce0859c878d77771194ee4d60' => 
+    '83e1b4863e84f2f96136cd5d1b59cf92e59c94e2' => 
     array (
-      0 => '/opt/lampp/htdocs/transporte_refactorizado/vista/noticias.tpl',
-      1 => 1761135357,
+      0 => '/opt/lampp/htdocs/transporte/vista/servicios.tpl',
+      1 => 1761632595,
       2 => 'file',
     ),
   ),
@@ -20,10 +20,10 @@ if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
   array (
   ),
 ),false)) {
-function content_68f8d4ee0a5d26_70696583 (Smarty_Internal_Template $_smarty_tpl) {
+function content_69162ce2d18005_75418887 (Smarty_Internal_Template $_smarty_tpl) {
 ?><link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 
-<nav class="navbar navbar-expand-lg navbar-dark bg-warning">
+<nav class="navbar navbar-expand-lg navbar-dark bg-success">
   <div class="container-fluid">
     <a class="navbar-brand" href="?path=inicio">🚍 Transporte</a>
     <div class="collapse navbar-collapse">
@@ -38,11 +38,16 @@ function content_68f8d4ee0a5d26_70696583 (Smarty_Internal_Template $_smarty_tpl)
 </nav>
 
 <div class="container py-5">
-  <h2 class="text-warning">Noticias</h2>
-  <p>Próximamente: integración con mapas y seguimiento en tiempo real.</p>
+  <h2 class="text-success">Nuestros Servicios</h2>
+  <ul class="list-group">
+    <li class="list-group-item">Gestión de rutas y viajes</li>
+    <li class="list-group-item">Registro de transportistas</li>
+    <li class="list-group-item">Panel administrativo</li>
+    <li class="list-group-item">Consultas y reportes</li>
+  </ul>
 
   <div class="text-center mt-4">
-    <a href="?path=inicio" class="btn btn-outline-warning">⬅ Volver al inicio</a>
+    <a href="?path=inicio" class="btn btn-outline-success">⬅ Volver al inicio</a>
   </div>
 </div>
 <?php }

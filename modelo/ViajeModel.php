@@ -96,4 +96,7 @@ class ViajeModel
     {
         // Método reservado para lógica futura
     }
+    public function listarPorTransportista(){
+        
+    }
 }

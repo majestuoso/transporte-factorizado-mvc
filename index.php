@@ -1,5 +1,4 @@
 <?php
-
 declare(strict_types=1);
 
 // Mostrar errores, pero ocultar los deprecados (ideal para Smarty 3.1.x en PHP 8.2+)
@@ -18,38 +17,54 @@ require_once(__DIR__ . '/controlador/RutaController.php');
 require_once(__DIR__ . '/controlador/ViajeController.php');
 require_once(__DIR__ . '/controlador/LoginController.php');
 require_once(__DIR__ . '/controlador/PanelController.php');
+require_once(__DIR__ . '/controlador/RegistroPersonalController.php');
+require_once(__DIR__ . '/controlador/RegistroTransportistaController.php');
 
 $router = new Router();
 
+// ---------------- TRANSPORTISTAS ----------------
 $router->add('transportistas/listar', 'TransportistaController', 'listar');
 $router->add('transportistas/agregar', 'TransportistaController', 'agregar');
+// 👇 nueva ruta para mostrar formulario de edición
+$router->add('transportistas/editar', 'TransportistaController', 'editar');
+// 👇 ruta para procesar el POST y guardar cambios
 $router->add('transportistas/modificar', 'TransportistaController', 'modificar');
 $router->add('transportistas/eliminar', 'TransportistaController', 'eliminar');
+$router->add('transportistas/editar', 'TransportistaController', 'editar');   // GET → mostrar formulario
+$router->add('transportistas/modificar', 'TransportistaController', 'modificar'); // POST → guardar cambios
 
+// ---------------- RUTAS ----------------
 $router->add('rutas/listar', 'RutaController', 'listar');
 $router->add('rutas/agregar', 'RutaController', 'agregar');
 $router->add('rutas/modificar', 'RutaController', 'modificar');
 $router->add('rutas/eliminar', 'RutaController', 'eliminar');
 
+// ---------------- VIAJES ----------------
 $router->add('viajes/listar', 'ViajeController', 'listar');
 $router->add('viajes/agregar', 'ViajeController', 'agregar');
 $router->add('viajes/modificar', 'ViajeController', 'modificar');
 $router->add('viajes/eliminar', 'ViajeController', 'eliminar');
 
-$router->add('login_cliente', 'LoginController', 'loginCliente');
+// ---------------- LOGIN ----------------
 $router->add('login_personal', 'LoginController', 'loginPersonal');
+$router->add('login_transportista', 'LoginController', 'loginTransportista');
 $router->add('logout', 'LoginController', 'logout');
 
-$router->add('panel_cliente', 'PanelController', 'cliente');
+// ---------------- PANELES ----------------
 $router->add('panel_personal', 'PanelController', 'personal');
+$router->add('panel_transportista', 'PanelController', 'transportista');
 
+// ---------------- REGISTRO ----------------
+$router->add('registro_personal', 'RegistroPersonalController', 'registrar');
+$router->add('registro_transportista', 'RegistroTransportistaController', 'registrar');
+
+// ---------------- PÁGINAS ESTÁTICAS ----------------
 $router->add('servicios', 'PanelController', 'servicios');
 $router->add('nosotros', 'PanelController', 'nosotros');
 $router->add('noticias', 'PanelController', 'noticias');
 $router->add('contacto', 'PanelController', 'contacto');
 
-$router->add('registro', 'LoginController', 'registro');
-
+// ---------------- DESPACHO ----------------
 $uri = $_GET['path'] ?? 'inicio';
 
 if ($uri === 'inicio') {
@@ -89,22 +104,11 @@ if ($uri === 'inicio') {
       <label class="form-label">Tipo de ingreso</label>
       <select id="tipoIngreso" class="form-select mb-3" onchange="mostrarFormulario()">
         <option value="">Seleccionar...</option>
-        <option value="cliente">Cliente</option>
         <option value="personal">Personal</option>
+        <option value="transportista">Transportista</option>
       </select>
 
-      <form id="formCliente" method="POST" action="?path=login_cliente" style="display:none;">
-        <div class="mb-3">
-          <label class="form-label">Usuario</label>
-          <input type="text" name="usuario" class="form-control" required>
-        </div>
-        <div class="mb-3">
-          <label class="form-label">Contraseña</label>
-          <input type="password" name="clave" class="form-control" required>
-        </div>
-        <button type="submit" class="btn btn-success w-100">Ingresar como Cliente</button>
-      </form>
-
+      <!-- Login Personal -->
       <form id="formPersonal" method="POST" action="?path=login_personal" style="display:none;">
         <div class="mb-3">
           <label class="form-label">Usuario</label>
@@ -117,8 +121,22 @@ if ($uri === 'inicio') {
         <button type="submit" class="btn btn-primary w-100">Ingresar como Personal</button>
       </form>
 
+      <!-- Login Transportista -->
+      <form id="formTransportista" method="POST" action="?path=login_transportista" style="display:none;">
+        <div class="mb-3">
+          <label class="form-label">Usuario</label>
+          <input type="text" name="usuario" class="form-control" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label">Contraseña</label>
+          <input type="password" name="clave" class="form-control" required>
+        </div>
+        <button type="submit" class="btn btn-success w-100">Ingresar como Transportista</button>
+      </form>
+
       <div class="text-center mb-3">
-        <a href="?path=registro" class="btn btn-outline-success btn-sm">📝 Registrarse</a>
+        <a href="?path=registro_personal" class="btn btn-outline-primary btn-sm">📝 Registrar Personal</a>
+        <a href="?path=registro_transportista" class="btn btn-outline-success btn-sm">📝 Registrar Transportista</a>
       </div>
 
       <hr>
@@ -135,8 +153,8 @@ if ($uri === 'inicio') {
   <script>
     function mostrarFormulario() {
       const tipo = document.getElementById('tipoIngreso').value;
-      document.getElementById('formCliente').style.display = tipo === 'cliente' ? 'block' : 'none';
       document.getElementById('formPersonal').style.display = tipo === 'personal' ? 'block' : 'none';
+      document.getElementById('formTransportista').style.display = tipo === 'transportista' ? 'block' : 'none';
     }
   </script>
 </body>

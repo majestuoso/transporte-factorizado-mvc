@@ -1,4 +1,27 @@
-<!DOCTYPE html>
+<?php
+/* Smarty version 3.1.48, created on 2025-11-13 16:51:07
+  from '/opt/lampp/htdocs/transporte/vista/registro.tpl' */
+
+/* @var Smarty_Internal_Template $_smarty_tpl */
+if ($_smarty_tpl->_decodeProperties($_smarty_tpl, array (
+  'version' => '3.1.48',
+  'unifunc' => 'content_6915fe6b708997_00454331',
+  'has_nocache_code' => false,
+  'file_dependency' => 
+  array (
+    '986342cce941bf9ce0024f236cdc5a503fca81de' => 
+    array (
+      0 => '/opt/lampp/htdocs/transporte/vista/registro.tpl',
+      1 => 1763048857,
+      2 => 'file',
+    ),
+  ),
+  'includes' => 
+  array (
+  ),
+),false)) {
+function content_6915fe6b708997_00454331 (Smarty_Internal_Template $_smarty_tpl) {
+?><!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
@@ -158,6 +181,10 @@
     </div>
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <?php echo '<script'; ?>
+ src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"><?php echo '</script'; ?>
+>
 </body>
 </html>
+<?php }
+}

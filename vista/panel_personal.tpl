@@ -126,7 +126,8 @@
   <div class="container-fluid panel-contenido">
     <div class="titulo text-center mb-4">
       <h1>Panel del Personal</h1>
-      <p>Bienvenido, <strong>{$usuario}</strong>.</p>
+     <p>Bienvenido, <strong>{$usuario|upper}</strong>.</p>
+
       <p class="mt-3 text-white-50">Seleccioná una opción del menú para gestionar el sistema.</p>
     </div>
 
@@ -139,7 +140,7 @@
           <div class="menu-content">
             <a href="?path=transportistas/listar">📋 Listar</a>
             <a href="?path=transportistas/agregar">➕ Agregar</a>
-            <a href="?path=transportistas/modificar">✏️ Modificar</a>
+            <a href="?path=transportistas/editar">✏️ Modificar</a>
             <a href="?path=transportistas/eliminar">🗑️ Eliminar</a>
           </div>
         </div>

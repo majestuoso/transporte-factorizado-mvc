@@ -5,6 +5,7 @@ require_once(__DIR__ . '/../modelo/TransportistaModel.php');
 require_once(__DIR__ . '/../vista/TransportistaView.php');
 require_once(__DIR__ . '/../modelo/Transportista.php');
 
+
 class TransportistaController
 {
     private TransportistaView $view;
@@ -16,18 +17,16 @@ class TransportistaController
         $this->model = new TransportistaModel();
     }
 
+    // 🏠 Inicio
     public function index(): void
     {
-        $this->model->recargar();
         $this->view->mostrarInicio();
     }
 
+    // 📋 Listar
     public function listar(): void
     {
-        $this->model->recargar();
         $transportistas = $this->model->listar();
-
-        // Validar que todos sean instancias válidas
         $transportistas = array_filter($transportistas, fn($t) => $t instanceof Transportista);
 
         if (empty($transportistas)) {
@@ -38,6 +37,7 @@ class TransportistaController
         $this->view->mostrarTransportistas($transportistas);
     }
 
+    // ➕ Agregar
     public function agregar(): void
     {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -58,6 +58,7 @@ class TransportistaController
         }
     }
 
+    // 🔎 Validación básica
     private function validar(array $data): bool
     {
         return isset($data['nombre'], $data['apellido'], $data['vehiculo']) &&
@@ -66,27 +67,75 @@ class TransportistaController
                trim($data['vehiculo']) !== '';
     }
 
-    public function modificar(): void
-    {
-        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id'])) {
-            $id = (int) $_POST['id'];
-            $this->model->modificarDesdeFormulario($id, $_POST);
-            $this->view->showMessage("Transportista modificado correctamente.");
-        } elseif (isset($_GET['id'])) {
-            $id = (int) $_GET['id'];
-            $transportista = $this->model->buscarPorId($id);
-            if ($transportista instanceof Transportista) {
-                $this->view->mostrarFormularioModificar($transportista);
-            } else {
-                $this->view->showMessage("Transportista no encontrado.");
-            }
-        } else {
-            $transportistas = $this->model->listar();
-            $transportistas = array_filter($transportistas, fn($t) => $t instanceof Transportista);
-            $this->view->mostrarSelectorModificar($transportistas);
-        }
+    // ✏️ Mostrar formulario de edición
+  // ✏️ Mostrar formulario de edición
+public function editar(): void
+{
+    session_start();
+    if ($_SESSION['rol'] !== 'personal') {
+        header("Location: ?path=inicio");
+        exit;
     }
 
+    $id = (int)($_GET['id'] ?? 0);
+
+    if ($id > 0) {
+        $t = $this->model->buscarPorId($id);
+        if ($t instanceof Transportista) {
+            $this->view->mostrarFormularioModificar($t);
+        } else {
+            $this->view->showMessage("Transportista no encontrado.");
+        }
+    } else {
+        // 👉 En vez de mostrar listado, renderizamos modificartodos.tpl
+        $transportistas = $this->model->listar();
+        $this->view->mostrarFormularioEditarTodos($transportistas);
+    }
+}
+
+
+    // 💾 Procesar modificación (POST)
+   public function modificar(): void
+{
+    session_start();
+    if (!in_array($_SESSION['rol'], ['transportista','personal'])) {
+        header("Location: ?path=inicio");
+        exit;
+    }
+
+    if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        $id        = (int)($_POST['id'] ?? 0);
+        $nombre    = trim($_POST['nombre'] ?? '');
+        $apellido  = trim($_POST['apellido'] ?? '');
+        $vehiculo  = trim($_POST['vehiculo'] ?? '');
+        $nota      = trim($_POST['nota'] ?? '');
+        $disponible= (int)($_POST['disponible'] ?? 1);
+
+        // Actualizar en BD
+        $this->model->actualizar($id, [
+            'nombre'     => $nombre,
+            'apellido'   => $apellido,
+            'vehiculo'   => $vehiculo,
+            'nota'       => $nota,
+            'disponible' => $disponible
+        ]);
+
+        // Volver a obtener datos actualizados
+        $t = $this->model->buscarPorId($id);
+
+        if ($t instanceof Transportista) {
+            $this->view->mostrarResumen($t);
+        } else {
+            $this->view->showMessage("Error al modificar transportista.");
+        }
+    } else {
+        header("Location: ?path=transportistas/listar");
+        exit;
+    }
+}
+
+
+    // 🗑️ Eliminar
     public function eliminar(): void
     {
         if (isset($_GET['id'])) {
